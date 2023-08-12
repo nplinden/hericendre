@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import re
 
 class Nuclide:
@@ -128,7 +127,7 @@ class Nuclide:
     element = element | {name.upper(): i + 1 for i, name in enumerate(elementnames)}
     isomernames = ["", "M", "N", "O"]
     isomer = {0: "", 1: "M", 2: "N", 3:"O", "M": 1, "N": 2, "G": 0, "O": 3, "": 0}
-    isomer = {k: i for i, k in enumerate(isomernames)}
+    isomer |= {k: i for i, k in enumerate(isomernames)}
 
     @classmethod
     def getA(cls, isot: str | int) -> int:
