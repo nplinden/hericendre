@@ -1,8 +1,11 @@
 import re
+from collections import namedtuple
+
 
 class Nuclide:
+    """A class that represents nuclides."""
 
-    name_regex = r"([A-Za-z]+)[-]*(\d+)[_]*(\w*)"
+    name_regex = r"([A-Za-z]+)[-_]*(\d+)[_]*(\w*)"
     elementnames = [
         "H",
         "He",
@@ -122,111 +125,92 @@ class Nuclide:
         "Lv",
     ]
 
-    element = {i + 1: name for i, name in enumerate(elementnames)}
-    element = element | {name: i + 1 for i, name in enumerate(elementnames)}
-    element = element | {name.upper(): i + 1 for i, name in enumerate(elementnames)}
+    elements_dict = {i + 1: name for i, name in enumerate(elementnames)}
+    elements_dict = elements_dict | {name: i + 1 for i, name in enumerate(elementnames)}
+    elements_dict = elements_dict | {
+        name.upper(): i + 1 for i, name in enumerate(elementnames)
+    }
     isomernames = ["", "M", "N", "O"]
-    isomer = {0: "", 1: "M", 2: "N", 3:"O", "M": 1, "N": 2, "G": 0, "O": 3, "": 0}
-    isomer |= {k: i for i, k in enumerate(isomernames)}
+    isomer = {0: "", 1: "M", 2: "N", 3: "O"}
+    isomer |= {"": 0, "G": 0, "M": 1, "N": 2, "O": 3}
+    isomer |= {"": 0, "g": 0, "m": 1, "n": 2, "o": 3}
+    isomer |= {f"m{i}": i for i in range(1, 10)}
 
     @classmethod
-    def getA(cls, isot: str | int) -> int:
-        """Return the mass number of the nuclide.
+    def slice_nucid(cls, nucid: int) -> tuple[int, int, int]:
+        """Turns a nucid into a named tuple (Z, A, M).
 
         Args:
-            isot (str | int): A isotope's name or an isotope's ZAM
+            nucid (int): A nuclide id.
 
         Returns:
-            int: The isotope's mass number
+            tuple[int, int, int]: A named zam tuple (z, a, m)
+
         """
-        if isinstance(isot, str):
-            if "_" not in isot:
-                regex = re.search(r"\D+(\d+)\D*", isot.upper())
-                try:
-                    return int(regex.group(1))
-                except AttributeError:
-                    raise ValueError(f"No mass number found for {isot}")
-            else:
-                _name = isot.split("_")[0]
-                regex = re.search(r"\D+(\d+)", _name.upper())
-                try:
-                    return int(regex.group(1))
-                except AttributeError:
-                    raise ValueError(f"No mass number found for {isot}")
-        elif isinstance(isot, int):
-            assert isot >= 10_000
-            return isot % 10_000 // 10
-        else:
-            raise ValueError("Input should be an isotope name or id.", isot)
+        e = nucid % 10
+        a = nucid % 10_000 // 10
+        z = nucid // 10_000
+        return namedtuple("Zam", ["z", "a", "m"])(z, a, e)
 
     @classmethod
-    def getZ(cls, isot: str | int) -> int:
-        if isinstance(isot, str):
-            if "_" not in isot:
-                regex = re.search(r"(\D+)\d+\D*", isot.upper())
-                try:
-                    return cls.element[regex.group(1)]
-                except KeyError:
-                    raise KeyError(f"{isot} element does not exist.")
-            else:
-                _name = isot.split("_")[0]
-                regex = re.search(r"(\D+)\d+", _name.upper())
-                try:
-                    return cls.element[regex.group(1)]
-                except KeyError:
-                    raise KeyError(f"{isot} element does not exist.")
-        elif isinstance(isot, int):
-            return isot // 10_000
+    def aggregate_zam(cls, zam: tuple[int, int, int]) -> int:
+        """Turns a (Z, A, M) tuple into a nuclide id.
+
+        Args:
+            zam (tuple[int, int, int]): A tuple (z, a, m)
+
+        Returns:
+            int: A nuclide id.
+
+        """
+        return 10_000 * zam[0] + 10 * zam[1] + zam[2]
 
     @classmethod
-    def getE(cls, isot: str | int) -> int:
-        if isinstance(isot, str):
-            if "_" not in isot:
-                regex = re.search(r"\D+\d+(\D*)", isot.upper())
-                try:
-                    return cls.isomer[regex.group(1)]
-                except KeyError:
-                    raise KeyError(f"{isot} has unreadable isomeric value.")
-            else:
-                try:
-                    _name = isot.split("_")[1]
-                    return int(_name[1:])
-                except IndexError:
-                    return 0
-        elif isinstance(isot, int):
-            return isot % 10
+    def name_to_sliced_zam(cls, name: str) -> int:
+        """Compute a zam tuple from a nuclide name.
+
+        Args:
+            name (str): The nuclide's name.
+
+        Returns:
+            tuple[int, int, int]: A named zam tuple (z, a, m)
+
+        """
+        groups = re.search(cls.name_regex, name).groups()
+        z = cls.elements_dict[groups[0].capitalize()]
+        a = int(groups[1])
+        e = cls.isomer[groups[2]]
+        return namedtuple("Zam", ["z", "a", "e"])(z, a, e)
 
     @classmethod
-    def getZAE(cls, isot: str | int) -> int:
-        Z, A, E = cls.getZ(isot), cls.getA(isot), cls.getE(isot)
-        return 10_000 * Z + 10 * A + E
+    def zam_to_name(cls, zam: tuple[int, int, int]) -> str:
+        """Compute a nuclide's name from its (z, a, m) tuple.
+        
+        Args:
+            zam (tuple[int, int, int]): A nuclide's (z, a ,m) tuple.
 
-    @classmethod
-    def getName(cls, zae: int) -> str:
-        Z, A, E = cls.getZ(zae), cls.getA(zae), cls.getE(zae)
-        try:
-            elem = cls.element[Z].capitalize()
-        except KeyError:
-            raise KeyError(f"Z id in {zae} does not map to any element.")
-
-        try:
-            isom = cls.isomer[E]
-        except KeyError:
-            raise KeyError(f"E id in {zae} does not map to any isomeric state.")
-
+        Returns:
+            str: The nuclide's name.
+        """
+        elem = cls.elements_dict[zam[0]]
+        A = zam[1]
+        isom = cls.isomer[zam[2]]
         return f"{elem}{A:d}{isom}"
 
     def __init__(self, initiator: str | int) -> None:
-        self.ZAE = self.getZAE(initiator)
+        if isinstance(initiator, str):
+            self.zam = self.name_to_sliced_zam(initiator)
+        elif isinstance(initiator, int):
+            self.zam = self.slice_nucid(initiator)
 
     @property
-    def ZAE(self):
-        return self._ZAE
+    def zam(self):
+        return self._zam
 
-    @ZAE.setter
-    def ZAE(self, rhs):
-        self._ZAE = rhs
-        self._name = self.getName(rhs)
+    @zam.setter
+    def zam(self, rhs):
+        self._zam = namedtuple("Zam", ["z", "a", "m"])(*rhs)
+        self._name = self.zam_to_name(self._zam)
 
     @property
     def name(self):
@@ -234,19 +218,34 @@ class Nuclide:
 
     @name.setter
     def name(self, rhs):
-        self.ZAE = self.getZAE(rhs)
-    
-    @property
-    def Z(self):
-        return self.getZ(self.ZAE)
+        self.zam = self.name_to_sliced_zam(rhs)
 
     @property
-    def A(self):
-        return self.getA(self.ZAE)
+    def nucid(self):
+        return self.aggregate_zam(self.zam)
+
+    @nucid.setter
+    def nucid(self, rhs):
+        self.zam = self.slice_nucid(rhs)
 
     @property
-    def E(self):
-        return self.getE(self.ZAE)
-        
-    
+    def z(self):
+        return self.zam.z
 
+    @property
+    def a(self):
+        return self.zam.a
+
+    @property
+    def m(self):
+        return self.zam.m
+
+    @property
+    def symb(self):
+        return self.elements_dict[self.z]
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.zam.__repr__()
