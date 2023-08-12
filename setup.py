@@ -20,6 +20,5 @@ setup(
     author_email='me@kennethreitz.com',
     url='https://github.com/kennethreitz/samplemod',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
 )
 

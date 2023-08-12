@@ -1,0 +1,1 @@
+A package for solving the Bateman equations analytically.
