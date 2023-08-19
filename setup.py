@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 with open('README.md') as f:
@@ -7,10 +7,10 @@ with open('README.md') as f:
 setup(
     name='decay',
     version='0.1.0',
-    description='Sample package for Python-Guide.org',
+    description='A package for radioactive decay calculations',
     long_description=readme,
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
-    url='https://github.com/kennethreitz/samplemod',
+    author='Nicolas Linden',
+    author_email='linden.nicolas@orange.fr',
+    url='https://github.com/nplinden/decay',
 )
 
