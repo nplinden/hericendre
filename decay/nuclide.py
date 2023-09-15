@@ -197,7 +197,7 @@ class Nuclide:
         isom = cls.isomer[zam[2]]
         return f"{elem}{A:d}{isom}"
 
-    def __init__(self, initiator: str | int) -> None:
+    def __init__(self, initiator) -> None:
         if isinstance(initiator, str):
             self.zam = self.name_to_sliced_zam(initiator)
         elif isinstance(initiator, int):
