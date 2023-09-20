@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import scipy as sp
 import networkx as nx
 from itertools import groupby
+from decay import Nuclide
 
 
 class Chain(nx.MultiDiGraph):
@@ -29,10 +30,11 @@ class Chain(nx.MultiDiGraph):
             decay_energy = isotnode.get("decay_energy", 0.)
 
             if parent not in chain:
-                chain.add_node(parent, dconst=dconst, decay_energy=decay_energy)
+                chain.add_node(parent, dconst=dconst, decay_energy=decay_energy, zae=Nuclide(parent).nucid)
             else:
                 chain.nodes[parent]["dconst"] = dconst
                 chain.nodes[parent]["decay_energy"] = decay_energy
+                chain.nodes[parent]["zae"] = Nuclide(parent).nucid
 
             for reaction in isotnode.findall("reaction"):
                 if reaction.get("type") == "fission":
@@ -146,6 +148,7 @@ class Chain(nx.MultiDiGraph):
 
         chain.nodes["void"]["dconst"] = 0.
         chain.nodes["void"]["decay_energy"] = 0.
+        chain.nodes["void"]["zae"] = -1
         return chain
 
     @classmethod
@@ -219,18 +222,40 @@ class Chain(nx.MultiDiGraph):
     def acyclical(self):
         return nx.is_directed_acyclic_graph(self)
 
-    def zero_power(self):
-        reduced = Chain(self)
-        reduced.remove_edges_from(
-            [edge for edge in reduced.edges if reduced.edges[edge]["event"] != "decay"]
-        )
-        return reduced
+    def zero_power(self, inplace=True):
+        if not inplace:
+            reduced = Chain(self)
+            reduced.remove_edges_from(
+                [edge for edge in reduced.edges if reduced.edges[edge]["event"] != "decay"]
+            )
+            return reduced
+        else:
+            self = Chain(self)
+            self.remove_edges_from(
+                [edge for edge in self.edges if self.edges[edge]["event"] != "decay"]
+            )
+
+    def remove_void(self, inplace=True):
+        if not inplace:
+            reduced = Chain(self)
+            reduced.remove_edges_from(
+                [edge for edge in reduced.edges if "void" in edge]
+            )
+            reduced.remove_node("void")
+            return reduced
+        else:
+            self.remove_edges_from(
+                [edge for edge in self.edges if "void" in edge]
+            )
+            self.remove_node("void")
 
     def topological_order(self):
         return list(nx.topological_sort(self))
 
     def build_decay_matrix(self, order: str = "topo"):
-        reduced = self.zero_power()
+        reduced = self.zero_power(inplace=False) #.remove_void(inplace=False)
+        if "Es258" in reduced: # A hack for removing the Es258 -> Es258 loop of ENDF-B/VII.1 chains
+            reduced.remove_node("Es258")
         assert reduced.acyclical
 
         if order == "file":
@@ -252,9 +277,8 @@ class Chain(nx.MultiDiGraph):
             matrix[i, i] = -reduced.dconst(parent)
             for daughter in reduced[parent]:
                 j = isotopes.index(daughter)
-                matrix[j, i] = (
-                        reduced.dconst(parent) * reduced[parent][daughter][0]["br"]
-                )
+                for _, edge in reduced[parent][daughter].items():
+                    matrix[j, i] = reduced.dconst(parent) * edge["br"]
         return isotopes, matrix
 
     @staticmethod
