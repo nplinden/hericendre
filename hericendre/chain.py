@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import scipy as sp
 import networkx as nx
 from itertools import groupby
-from decay import Nuclide
+from hericendre import Nuclide
 
 
 class Chain(nx.MultiDiGraph):

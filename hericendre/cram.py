@@ -2,7 +2,7 @@ import numpy as np
 import yaml
 import scipy.sparse as sp
 import scipy.sparse.linalg as sla
-from decay.utils import ROOT_PATH
+from hericendre.utils import ROOT_PATH
 
 
 class CramSolver:
