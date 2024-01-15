@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 with open('README.md') as f:
@@ -8,6 +8,8 @@ setup(
     name='decay',
     version='0.1.0',
     description='A package for radioactive decay calculations',
+    packages=find_packages(exclude=["*tests*", "functional_test*"]),
+
     long_description=readme,
     author='Nicolas Linden',
     author_email='linden.nicolas@orange.fr',
