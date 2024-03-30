@@ -12,5 +12,6 @@ Decay::Decay(const pugi::xml_node& decayNode, NuclidePtr parent){
     else
         branchingRatio_ = 1. ;
 
+    parentName_ = parent->name_ ;
     parent_ = parent ;
 } ;

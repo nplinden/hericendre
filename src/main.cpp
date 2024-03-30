@@ -13,58 +13,136 @@
 #include <solver.hpp>
 #include <fmt/ranges.h>
 
-typedef Eigen::SparseMatrix<double> SpMat ;
+typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::Triplet<double> T;
 
-int deplete(){
-  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml") ;
-  std::map<std::string, double> ccMap ;
-
-  Eigen::VectorXd N(chain.nuclides_.size()) ;
-  for (int i = 0; i < chain.nuclides_.size(); i++)
-    N(i) = 1. ;
-  Solver solver;
-  Eigen::VectorXd res = solver.run(chain, N, 760854000000) ;
-  return 0 ;
-}
-
-int display_info(){
-  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml") ;
-  // Chain chain("/home/nlinden/workspace/deplete/data/short.xml") ;
-  std::map<std::string, double> ccMap ;
-
-
-  fmt::print("Number of nuclides: {}\n", chain.nuclides_.size()) ;
-  fmt::print("Number of decays: {}\n", chain.decays_.size()) ;
-  fmt::print("Number of nreactions: {}\n", chain.nreactions_.size()) ;
-
-  auto nuc = chain.find(922350) ;
-  fmt::print("{}\n", *nuc) ;
-  return 1 ;
-}
-
-int main(int argc, char* argv[])
+enum class RunMode
 {
-  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml") ;
+  PROCESS,
+  DEPLETE,
+  BURN
+};
+
+int deplete()
+{
+  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml");
+  std::map<std::string, double> ccMap;
+
+  Eigen::VectorXd N(chain.nuclides_.size());
+  for (int i = 0; i < chain.nuclides_.size(); i++)
+    N(i) = 1.;
+  Solver solver;
+  Eigen::VectorXd res = solver.run(chain, N, 760854000000);
+  return 0;
+}
+
+int display_info()
+{
+  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml");
   // Chain chain("/home/nlinden/workspace/deplete/data/short.xml") ;
+  std::map<std::string, double> ccMap;
 
-  pugi::xml_document doc;
-  auto root = doc.append_child("depletion_chain");
+  fmt::print("Number of nuclides: {}\n", chain.nuclides_.size());
+  fmt::print("Number of decays: {}\n", chain.decays_.size());
+  fmt::print("Number of nreactions: {}\n", chain.reactions_.size());
 
-  for (auto nuclide : chain.nuclides_) {
-    nuclide->addNode(root) ;
+  auto nuc = chain.find(922350);
+  fmt::print("{}\n", *nuc);
+  return 1;
+}
+
+void process(int argc, char *argv[])
+{
+  char *inFile;
+  char *outFile;
+  for (int count = 0; count < argc; ++count)
+  {
+    if (std::string(argv[count]) == "-c")
+    {
+      inFile = argv[count + 1];
+    }
+    if (std::string(argv[count]) == "-o")
+    {
+      outFile = argv[count + 1];
+    }
   }
+  Chain chain(inFile);
+  chain.write(outFile);
+}
 
-  doc.save_file("chain.xml", "  ") ;
+void info(int argc, char *argv[])
+{
+  char *inFile;
+  for (int count = 0; count < argc; ++count)
+  {
+    if (std::string(argv[count]) == "-c")
+    {
+      inFile = argv[count + 1];
+    }
+  }
+}
 
-  // auto nuc = chain.find("Pu239") ;
-  // for (auto s : nuc->sources_){
-  //   fmt::print("{} {}\n", s->particle_, s->type_) ;
-  //   if (s->type_ != "mixture"){
-  //     fmt::print("{}\n", s->energy_.size()) ;
-  //     fmt::print("{}\n", s->intensity_.size()) ;
-  //   }
-  // }
+void dfs(int nucid, std::vector<bool> &visited, Chain &chain)
+{
+  if (visited[nucid])
+    return;
+  visited[nucid] = true;
+
+  std::vector<DecayPtr> decays = chain.nuclides_[nucid]->decays_;
+  std::vector<int> neighbours;
+  fmt::print("{}: {}\n", nucid, chain.nuclides_[nucid]->name_);
+  for (DecayPtr decay : chain.nuclides_[nucid]->decays_)
+  {
+    fmt::print("\t{}\n", decay->target_->name_);
+    neighbours.push_back(decay->target_->idInChain);
+  }
+  for (const auto neighboursId : neighbours)
+  {
+    dfs(neighboursId, visited, chain);
+  }
+}
+
+void reachable(Chain chain, std::string nucname)
+{
+  int n = chain.nuclides_.size();
+  std::vector<bool> visited;
+  for (int i = 0; i < n; i++)
+    visited.push_back(false);
+  int initialId = chain.find(nucname)->idInChain;
+  dfs(initialId, visited, chain);
+
+  for (int i = 0; i < n; i++)
+  {
+    // if (visited[i])
+    // fmt::print("{}\n", chain.nuclides_[i]->name_) ;
+  }
+}
+
+int main(int argc, char *argv[])
+{
+
+  Chain chain("/home/nlinden/workspace/hericendre/data/chain_endfb71_sfr.xml");
+  reachable(chain, "Pu239");
+
+  // RunMode mode ;
+
+  if (argc == 1)
+  {
+    fmt::print("Please provide instructions\n");
+    return 0;
+  }
+  else
+  {
+    if (std::string(argv[1]) == "process")
+    {
+      process(argc, argv);
+    }
+    if (std::string(argv[1]) == "info")
+    {
+      info(argc, argv);
+    }
+    return 0;
+  }
 
   return 0;
 }

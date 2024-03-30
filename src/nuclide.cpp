@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include "decay.hpp"
 #include "nreaction.hpp"
+#include "utils.hpp"
 
 Nuclide::Nuclide(std::string name, double dconst){
     name_ = name ;
@@ -35,12 +36,15 @@ Nuclide::Nuclide(const pugi::xml_node& nuclideNode){
         sources_.push_back(std::make_shared<Source>(Source(sourceNode))) ;
     }
 
-    auto nfyNode = nuclideNode.child("neutron_fission_yields") ;
-    if (nfyNode){
-        fmt::print("{}\n", name_) ;
-        if (nfyNode.child("energies"))
-            neutronFissionYields_ = std::make_shared<NeutronFissionYield>(nfyNode) ;
-    }
+    // auto nfyNode = nuclideNode.child("neutron_fission_yields") ;
+    // if (nfyNode){
+    //     std::string parent = nfyNode.attribute("parent").value() ;
+    //     if (!parent.empty()) {
+    //         this->nfyParent_ = parent ;
+    //     } else if (nfyNode.child("energies")){
+    //         neutronFissionYields_ = std::make_shared<NeutronFissionYield>(nfyNode) ;
+    //     }
+    // }
 } ;
 
 const std::map<std::string, int> Nuclide::ELEMENTS = {
@@ -100,13 +104,12 @@ void Nuclide::addNode(pugi::xml_node& rootnode){
     auto nucNode = rootnode.append_child("nuclide") ;
     nucNode.append_attribute("name") = this->name_.c_str() ;
     if (this->dconst_ != 0.)
-        nucNode.append_attribute("half_life") = std::log(2) / this->dconst_ ;
+        nucNode.append_attribute("half_life") = fmt::format("{}", std::log(2) / this->dconst_).c_str() ;
     if (this->ndecay_ != 0.)
         nucNode.append_attribute("decay_modes") = this->ndecay_ ;
     if (this->denergy_ != 0.)
-        nucNode.append_attribute("decay_energy") = this->denergy_ ;
-    if (this->nreac_ != 0.)
-        nucNode.append_attribute("reactions") = this->nreac_ ;
+        nucNode.append_attribute("decay_energy") = fmtDouble(this->denergy_).c_str() ;
+    nucNode.append_attribute("reactions") = this->nreac_ ;
 
     if (!this->decays_.empty()){
         for (auto decay : this->decays_){
@@ -115,7 +118,7 @@ void Nuclide::addNode(pugi::xml_node& rootnode){
                 decNode.append_attribute("type") = decay->type_.c_str();
             if (!decay->targetName_.empty())
                 decNode.append_attribute("target") = decay->targetName_.c_str();
-            decNode.append_attribute("branching_ratio") = decay->branchingRatio_ ;
+            decNode.append_attribute("branching_ratio") = fmtDouble(decay->branchingRatio_).c_str() ;
         }
     }
 
@@ -128,10 +131,13 @@ void Nuclide::addNode(pugi::xml_node& rootnode){
             sourceNode.append_attribute("particle") = source->particle_.c_str() ;
             if (source->type_ != "mixture"){
                 std::string parameters = "" ;
-                for (auto energy : source->energy_)
-                    parameters += fmt::format("{} ", energy) ;
-                for (auto intensity : source->intensity_)
+                for (auto energy : source->energy_){
+                    parameters += fmtDouble(energy) ;
+                    parameters += " " ;
+                }
+                for (auto intensity : source->intensity_){
                     parameters += fmt::format("{} ", intensity) ;
+                }
                 parameters.pop_back() ;
                 auto paramNode = sourceNode.append_child("parameters") ;
                 paramNode.text() = parameters.c_str() ;
@@ -159,15 +165,25 @@ void Nuclide::addNode(pugi::xml_node& rootnode){
         }
     }
 
-    if (!this->nreactions_.empty()){
-        for (auto reaction : this->nreactions_){
+    if (!this->reactions_.empty()){
+        for (auto reaction : this->reactions_){
             auto reacNode = nucNode.append_child("reaction") ;
             reacNode.append_attribute("type") = reaction->type_.c_str() ;
-            reacNode.append_attribute("Q") = reaction->Q_ ;
+            reacNode.append_attribute("Q") = fmtDouble(reaction->Q_).c_str() ;
             if (!reaction->targetName_.empty())
                 reacNode.append_attribute("target") = reaction->targetName_.c_str() ;
             if (reaction->branchingRatio_ != 1.)
                 reacNode.append_attribute("branching_ratio") = reaction->branchingRatio_ ;
         }
     }
+
+    // if (this->neutronFissionYields_){
+    //     // fmt::print("{}", this->name_) ;
+    //     auto nfyNode = nucNode.append_child("neutron_fission_yields") ;
+    //     if (!this->nfyParent_.empty()){
+    //         nfyNode.append_attribute("parent") = this->nfyParent_.c_str() ;
+    //     } else {
+    //         this->neutronFissionYields_->addNode(nfyNode) ;
+    //     }
+    // }
 }
