@@ -12,11 +12,34 @@ using TrComplex = Eigen::Triplet<cdouble>;
 class Solver {
 public:
   Solver();
+
+  /**
+   * \brief theta_i tabulated values for CRAM-48
+   *
+   * \param chain: The chain to deplete with.
+   * \param A vector of initial concentration. Length of the vector should match
+   * the length of the chain's nuclides attribute.
+   * \param dt: The length of the
+   * time step in seconds.
+   */
   Eigen::VectorXd run(const Chain &chain, Eigen::VectorXd ccVector, double dt);
+
+  /**
+   * \brief theta_i tabulated values for CRAM-48
+   *
+   * \param chain: The chain to deplete with.
+   * \param A map of initial concentration in the ccMap["nuclide"] =
+   * concentration format
+   * \param dt: The length of the time step in seconds.
+   */
   Eigen::VectorXd run(const Chain &chain, std::map<std::string, double> ccMap,
                       double dt);
 
 private:
+  /**
+   * \brief theta_i tabulated values for CRAM-48
+   *
+   */
   std::vector<cdouble> theta48 = {
       cdouble(-4.465731934165702e+1, +6.233225190695437e+1),
       cdouble(-5.284616241568964e+0, +4.057499381311059e+1),
@@ -43,6 +66,10 @@ private:
       cdouble(-1.734689708174982e+1, +4.883941101108207e+1),
       cdouble(+1.316284237125190e+1, +2.042951874827759e+1)};
 
+  /**
+   * \brief alpha_i tabulated values for CRAM-48
+   *
+   */
   std::vector<cdouble> alpha48 = {
       cdouble(+6.387380733878774e+2, -6.743912502859256e+2),
       cdouble(+1.909896179065730e+2, -3.973203432721332e+2),
@@ -69,6 +96,10 @@ private:
       cdouble(+7.738987569039419e+1, -4.311715386228984e+1),
       cdouble(+1.041366366475571e+2, -2.777743732451969e+2)};
 
+  /**
+   * \brief alpha_0 tabulated values for CRAM-48
+   *
+   */
   double alpha48_0 = 2.258038182743983e-47;
 };
 

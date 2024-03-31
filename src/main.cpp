@@ -1,12 +1,10 @@
 #include "pugixml.hpp"
 #include <Eigen/Sparse>
 #include <chain.hpp>
-#include <cmath>
 #include <decay.hpp>
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
-#include <fstream>
 #include <iostream>
 #include <map>
 #include <nuclide.hpp>
@@ -100,24 +98,24 @@ void reachable(Chain chain, std::string nucname) {
 }
 
 int main(int argc, char *argv[]) {
-
+  std::cout << "coucou\n";
   Chain chain("/home/nlinden/workspace/hericendre/data/chain_endfb71_sfr.xml");
-  reachable(chain, "Pu239");
+  // reachable(chain, "Pu239");
 
   // RunMode mode ;
 
-  if (argc == 1) {
-    fmt::print("Please provide instructions\n");
-    return 0;
-  } else {
-    if (std::string(argv[1]) == "process") {
-      process(argc, argv);
-    }
-    if (std::string(argv[1]) == "info") {
-      info(argc, argv);
-    }
-    return 0;
-  }
+  // if (argc == 1) {
+  //   fmt::print("Please provide instructions\n");
+  //   return 0;
+  // } else {
+  //   if (std::string(argv[1]) == "process") {
+  //     process(argc, argv);
+  //   }
+  //   if (std::string(argv[1]) == "info") {
+  //     info(argc, argv);
+  //   }
+  //   return 0;
+  // }
 
   return 0;
 }

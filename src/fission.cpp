@@ -3,7 +3,6 @@
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
-#include <iostream>
 
 Fission::Fission(const pugi::xml_node &nfyNode, NuclidePtr parent) {
   parent_ = parent;

@@ -2,10 +2,8 @@
 #include "decay.hpp"
 #include "nreaction.hpp"
 #include "utils.hpp"
-#include <algorithm>
 #include <cmath>
 #include <fmt/format.h>
-#include <iostream>
 
 Nuclide::Nuclide(std::string name, double dconst) {
   name_ = name;

@@ -1,19 +1,18 @@
 #include "chain.hpp"
 #include "pugixml.hpp"
-#include "source.hpp"
 #include <Eigen/Sparse>
-#include <algorithm>
-#include <cassert>
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <iostream>
 
 Chain::Chain(const char *path) {
+  fmt::print("entering Chain");
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
+  std::cout << "Initialization\n";
   for (pugi::xml_node nuclide = chainxml.child("nuclide"); nuclide;
        nuclide = nuclide.next_sibling("nuclide")) {
     nuclides_.push_back(std::make_shared<Nuclide>(Nuclide(nuclide)));
@@ -35,6 +34,7 @@ Chain::Chain(const char *path) {
     }
   }
 
+  std::cout << "Binding decays\n";
   // BINDING STEP
   for (auto &dec : decays_) {
     dec->parent_->decays_.push_back(dec);
@@ -43,6 +43,7 @@ Chain::Chain(const char *path) {
     dec->target_->decaysUp_.push_back(dec);
   }
 
+  std::cout << "Binding reaction\n";
   for (auto &reac : reactions_) {
     reac->parent_->reactions_.push_back(reac);
     if (!reac->targetName_.empty())
@@ -57,6 +58,7 @@ Chain::Chain(const char *path) {
   //   }
   // }
 
+  std::cout << "Check\n";
   // COHERENCE CHECK
   for (auto &n : nuclides_) {
     if (n->ndecay_ != n->decays_.size())
