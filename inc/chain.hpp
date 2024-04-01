@@ -61,6 +61,23 @@ public:
    * \param std::string name: the name of the nuclide.
    */
   int nuclide_index(std::string name) const;
+
+  /**
+   * \brief An implementation of depth first search algorithme to find all
+   * visited nuclide nodes starting from an initial node.
+   *
+   * \param nucid: The id of the initial nuclide.
+   * \param visited: A node visitation record.
+   */
+  void dfs(int nucid, std::vector<bool> &visited);
+
+  /**
+   * \brief Returns the list of all reachable nuclides names.
+   *
+   * \param std::string name: the name of the nuclide.
+   */
+  std::vector<std::string> reachable(std::string nucname);
+
   Eigen::SparseMatrix<double> decayMatrix() const;
 
   // MEMBER VARIABLES

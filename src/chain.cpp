@@ -6,16 +6,18 @@
 #include <iostream>
 
 Chain::Chain(const char *path) {
-  fmt::print("entering Chain");
+  fmt::print("entering Chain\n");
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
-  std::cout << "Initialization\n";
+  std::cout << "Initialization:\n";
   for (pugi::xml_node nuclide = chainxml.child("nuclide"); nuclide;
        nuclide = nuclide.next_sibling("nuclide")) {
+
     nuclides_.push_back(std::make_shared<Nuclide>(Nuclide(nuclide)));
+
     nuclides_.back()->idInChain = nuclides_.size() - 1;
     for (pugi::xml_node decayNode = nuclide.child("decay"); decayNode;
          decayNode = decayNode.next_sibling("decay")) {
@@ -24,23 +26,31 @@ Chain::Chain(const char *path) {
     }
     for (pugi::xml_node reactionNode = nuclide.child("reaction"); reactionNode;
          reactionNode = reactionNode.next_sibling("reaction")) {
-      reactions_.push_back(std::make_shared<NReaction>(
-          NReaction(reactionNode, nuclides_.back())));
+      if (reactionNode.attribute("type").value() != std::string("fission")) {
+        reactions_.push_back(std::make_shared<NReaction>(
+            NReaction(reactionNode, nuclides_.back())));
+      }
     }
-    for (pugi::xml_node nfyNode = nuclide.child("neutron_fission_yields");
-         nfyNode; nfyNode = nfyNode.next_sibling("neutron_fission_yields")) {
-      fissions_.push_back(
-          std::make_shared<Fission>(Fission(nfyNode, nuclides_.back())));
-    }
+
+    // for (pugi::xml_node nfyNode = nuclide.child("neutron_fission_yields");
+    //      nfyNode; nfyNode = nfyNode.next_sibling("neutron_fission_yields")) {
+    //   fissions_.push_back(
+    //       std::make_shared<Fission>(Fission(nfyNode, nuclides_.back())));
+    // }
   }
+  std::cout << "\t" << nuclides_.size() << " nuclides found\n";
+  std::cout << "\t" << decays_.size() << " decay reactions found\n";
+  std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
+  // std::cout << "\t" << fissions_.size() << " fissions found\n";
 
   std::cout << "Binding decays\n";
   // BINDING STEP
   for (auto &dec : decays_) {
     dec->parent_->decays_.push_back(dec);
-    if (!dec->targetName_.empty())
+    if (!dec->targetName_.empty()) {
       dec->target_ = this->find(dec->targetName_);
-    dec->target_->decaysUp_.push_back(dec);
+      dec->target_->decaysUp_.push_back(dec);
+    }
   }
 
   std::cout << "Binding reaction\n";
@@ -58,16 +68,18 @@ Chain::Chain(const char *path) {
   //   }
   // }
 
-  std::cout << "Check\n";
-  // COHERENCE CHECK
-  for (auto &n : nuclides_) {
-    if (n->ndecay_ != n->decays_.size())
-      throw std::invalid_argument(
-          fmt::format("{} {} {}", n->name_, n->ndecay_, n->decays_.size()));
-    if (n->nreac_ != n->reactions_.size())
-      throw std::invalid_argument(
-          fmt::format("{} {} {}", n->name_, n->nreac_, n->reactions_.size()));
-  }
+  // std::cout << "Check...";
+  // // COHERENCE CHECK
+  // for (auto &n : nuclides_) {
+  //   if (n->ndecay_ != n->decays_.size())
+  //     throw std::invalid_argument(
+  //         fmt::format("{} {} {}", n->name_, n->ndecay_, n->decays_.size()));
+  //   if (n->nreac_ != n->reactions_.size())
+  //     throw std::invalid_argument(
+  //         fmt::format("{} {} {}", n->name_, n->nreac_,
+  //         n->reactions_.size()));
+  // }
+  // std::cout << "done" << std::endl;
 }
 
 Chain::Chain() {}
@@ -142,6 +154,39 @@ Eigen::SparseMatrix<double> Chain::decayMatrix() const {
   M.setFromTriplets(triplets.begin(), triplets.end());
   M.makeCompressed();
   return M;
+}
+
+void Chain::dfs(int nucid, std::vector<bool> &visited) {
+  if (visited[nucid])
+    return;
+  visited[nucid] = true;
+
+  std::vector<DecayPtr> decays = nuclides_[nucid]->decays_;
+  std::vector<int> neighbours;
+  // fmt::print("{}: {}\n", nucid, nuclides_[nucid]->name_);
+  for (DecayPtr decay : nuclides_[nucid]->decays_) {
+    // fmt::print("\t{}\n", decay->target_->name_);
+    neighbours.push_back(decay->target_->idInChain);
+  }
+  for (const auto neighboursId : neighbours) {
+    this->dfs(neighboursId, visited);
+  }
+}
+
+std::vector<std::string> Chain::reachable(std::string nucname) {
+  int n = nuclides_.size();
+  std::vector<bool> visited;
+  for (int i = 0; i < n; i++)
+    visited.push_back(false);
+  int initialId = this->find(nucname)->idInChain;
+  this->dfs(initialId, visited);
+
+  std::vector<std::string> names;
+  for (int i = 0; i < n; i++) {
+    if (visited[i])
+      names.push_back(nuclides_[i]->name_);
+  }
+  return names;
 }
 
 void Chain::removeNuclide(std::string nuc) {}

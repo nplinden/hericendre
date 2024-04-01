@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include <nuclide.hpp>
+#include <numeric>
 #include <solver.hpp>
 #include <vector>
 
@@ -16,106 +17,39 @@ typedef Eigen::Triplet<double> T;
 
 enum class RunMode { PROCESS, DEPLETE, BURN };
 
-int deplete() {
-  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml");
+Eigen::VectorXd deplete(Chain &chain) {
   std::map<std::string, double> ccMap;
 
   Eigen::VectorXd N(chain.nuclides_.size());
   for (int i = 0; i < chain.nuclides_.size(); i++)
     N(i) = 1.;
   Solver solver;
-  Eigen::VectorXd res = solver.run(chain, N, 760854000000);
-  return 0;
-}
-
-int display_info() {
-  Chain chain("/home/nlinden/workspace/deplete/data/chain-jeff33-long.xml");
-  // Chain chain("/home/nlinden/workspace/deplete/data/short.xml") ;
-  std::map<std::string, double> ccMap;
-
-  fmt::print("Number of nuclides: {}\n", chain.nuclides_.size());
-  fmt::print("Number of decays: {}\n", chain.decays_.size());
-  fmt::print("Number of nreactions: {}\n", chain.reactions_.size());
-
-  auto nuc = chain.find(922350);
-  fmt::print("{}\n", *nuc);
-  return 1;
-}
-
-void process(int argc, char *argv[]) {
-  char *inFile;
-  char *outFile;
-  for (int count = 0; count < argc; ++count) {
-    if (std::string(argv[count]) == "-c") {
-      inFile = argv[count + 1];
-    }
-    if (std::string(argv[count]) == "-o") {
-      outFile = argv[count + 1];
-    }
-  }
-  Chain chain(inFile);
-  chain.write(outFile);
-}
-
-void info(int argc, char *argv[]) {
-  char *inFile;
-  for (int count = 0; count < argc; ++count) {
-    if (std::string(argv[count]) == "-c") {
-      inFile = argv[count + 1];
-    }
-  }
-}
-
-void dfs(int nucid, std::vector<bool> &visited, Chain &chain) {
-  if (visited[nucid])
-    return;
-  visited[nucid] = true;
-
-  std::vector<DecayPtr> decays = chain.nuclides_[nucid]->decays_;
-  std::vector<int> neighbours;
-  fmt::print("{}: {}\n", nucid, chain.nuclides_[nucid]->name_);
-  for (DecayPtr decay : chain.nuclides_[nucid]->decays_) {
-    fmt::print("\t{}\n", decay->target_->name_);
-    neighbours.push_back(decay->target_->idInChain);
-  }
-  for (const auto neighboursId : neighbours) {
-    dfs(neighboursId, visited, chain);
-  }
-}
-
-void reachable(Chain chain, std::string nucname) {
-  int n = chain.nuclides_.size();
-  std::vector<bool> visited;
-  for (int i = 0; i < n; i++)
-    visited.push_back(false);
-  int initialId = chain.find(nucname)->idInChain;
-  dfs(initialId, visited, chain);
-
-  for (int i = 0; i < n; i++) {
-    // if (visited[i])
-    // fmt::print("{}\n", chain.nuclides_[i]->name_) ;
-  }
+  return solver.run(chain, N, 86400);
 }
 
 int main(int argc, char *argv[]) {
-  std::cout << "coucou\n";
   Chain chain("/home/nlinden/workspace/hericendre/data/chain_endfb71_sfr.xml");
-  // reachable(chain, "Pu239");
+  // Chain
+  // chain("/home/nlinden/workspace/hericendre/data/chain-jeff33-long.xml");
+  auto nuclides = chain.reachable("Pu239");
 
-  // RunMode mode ;
+  std::map<std::string, double> ccMap;
+  ccMap["Pu239"] = 1.e24;
 
-  // if (argc == 1) {
-  //   fmt::print("Please provide instructions\n");
-  //   return 0;
-  // } else {
-  //   if (std::string(argv[1]) == "process") {
-  //     process(argc, argv);
-  //   }
-  //   if (std::string(argv[1]) == "info") {
-  //     info(argc, argv);
-  //   }
-  //   return 0;
+  Solver solver;
+  // N = solver.run(chain, N, 86400);
+  std::vector<double> times = {
+      1e10, 1e11, 1e12, 1e13, 1e14,
+  };
+  auto N = solver.run(chain, ccMap, times);
+
+  // for (int i = 0; i < N.size(); i++) {
+  //   if (N[i] != 0)
+  //     fmt::print("{:8s},{:.4e},{: .4e}\n", chain.nuclides_[i]->name_,
+  //                chain.nuclides_[i]->dconst_, N[i]);
   // }
+  // double sum = std::accumulate(N.begin(), N.end(), 0.);
+  // fmt::print("sum = {:.4e}\n", sum);
 
   return 0;
 }
