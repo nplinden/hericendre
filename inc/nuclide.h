@@ -1,13 +1,13 @@
 #ifndef NUCLIDE_HPP_INCLUDED
 #define NUCLIDE_HPP_INCLUDED
-#include "source.hpp"
+#include "source.h"
 #include <fmt/core.h>
 #include <map>
 #include <memory>
 #include <pugixml.hpp>
 #include <string>
 #include <vector>
-// #include "nfy.hpp"
+// #include "nfy.h"
 
 class Decay;
 class NReaction;

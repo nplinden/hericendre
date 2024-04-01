@@ -2,7 +2,7 @@
 #define NFY_HPP_INCLUDED
 #include <map>
 #include <memory>
-#include <nuclide.hpp>
+#include <nuclide.h>
 #include <pugixml.hpp>
 #include <string>
 #include <vector>

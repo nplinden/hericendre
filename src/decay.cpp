@@ -1,5 +1,5 @@
-#include "decay.hpp"
-#include "nuclide.hpp"
+#include "decay.h"
+#include "nuclide.h"
 
 Decay::Decay(const pugi::xml_node &decayNode, NuclidePtr parent) {
   type_ = decayNode.attribute("type").value();

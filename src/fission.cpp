@@ -1,5 +1,5 @@
-#include "fission.hpp"
-#include "utils.hpp"
+#include "fission.h"
+#include "utils.h"
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>

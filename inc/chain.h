@@ -1,10 +1,10 @@
 #ifndef CHAIN_HPP_INCLUDED
 #define CHAIN_HPP_INCLUDED
 #include <Eigen/Sparse>
-#include <decay.hpp>
-#include <fission.hpp>
-#include <nreaction.hpp>
-#include <nuclide.hpp>
+#include <decay.h>
+#include <fission.h>
+#include <nreaction.h>
+#include <nuclide.h>
 #include <string>
 #include <vector>
 

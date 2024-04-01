@@ -1,15 +1,15 @@
 #include "pugixml.hpp"
 #include <Eigen/Sparse>
-#include <chain.hpp>
-#include <decay.hpp>
+#include <chain.h>
+#include <decay.h>
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
 #include <iostream>
 #include <map>
-#include <nuclide.hpp>
+#include <nuclide.h>
 #include <numeric>
-#include <solver.hpp>
+#include <solver.h>
 #include <vector>
 
 typedef Eigen::SparseMatrix<double> SpMat;

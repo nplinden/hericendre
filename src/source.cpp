@@ -1,7 +1,7 @@
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
-#include <source.hpp>
+#include <source.h>
 #include <vector>
 
 Source::Source(const pugi::xml_node &sourceNode) {

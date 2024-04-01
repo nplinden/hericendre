@@ -1,4 +1,4 @@
-#include "chain.hpp"
+#include "chain.h"
 #include "pugixml.hpp"
 #include <Eigen/Sparse>
 #include <fmt/core.h>

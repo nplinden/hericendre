@@ -1,7 +1,7 @@
 #ifndef SOLVER_HPP_INCLUDED
 #define SOLVER_HPP_INCLUDED
 #include <Eigen/Sparse>
-#include <chain.hpp>
+#include <chain.h>
 #include <complex>
 #include <map>
 #include <vector>

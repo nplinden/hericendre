@@ -1,6 +1,6 @@
 #include <Eigen/SparseLU>
 #include <fmt/core.h>
-#include <solver.hpp>
+#include <solver.h>
 
 Solver::Solver() {}
 

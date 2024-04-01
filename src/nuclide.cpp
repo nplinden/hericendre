@@ -1,7 +1,7 @@
-#include "nuclide.hpp"
-#include "decay.hpp"
-#include "nreaction.hpp"
-#include "utils.hpp"
+#include "nuclide.h"
+#include "decay.h"
+#include "nreaction.h"
+#include "utils.h"
 #include <cmath>
 #include <fmt/format.h>
 

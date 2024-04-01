@@ -1,4 +1,4 @@
-#include "nreaction.hpp"
+#include "nreaction.h"
 
 NReaction::NReaction(const pugi::xml_node &reactionNode, NuclidePtr parent) {
   type_ = reactionNode.attribute("type").value();
