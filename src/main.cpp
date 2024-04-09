@@ -1,4 +1,7 @@
 #include "pugixml.hpp"
+// #include "yaml-cpp/node/node.h"
+#include "input.h"
+#include "yaml-cpp/yaml.h"
 #include <Eigen/Sparse>
 #include <chain.h>
 #include <decay.h>
@@ -28,20 +31,27 @@ Eigen::VectorXd deplete(Chain &chain) {
 }
 
 int main(int argc, char *argv[]) {
-  Chain chain("/home/nlinden/workspace/hericendre/data/chain_endfb71_sfr.xml");
+  Input myinput("/home/nlinden/workspace/hericendre/data/example1.yaml");
+  fmt::print("powerlevel = {}\n", myinput.powerlevel_);
+  fmt::print("times = {}\n", myinput.times_);
+  fmt::print("cc = {}\n", myinput.concentrations_);
+  myinput.run();
+
+  // Chain
+  // chain("/home/nlinden/workspace/hericendre/data/chain_endfb71_sfr.xml");
   // Chain
   // chain("/home/nlinden/workspace/hericendre/data/chain-jeff33-long.xml");
-  auto nuclides = chain.reachable("Pu239");
+  // auto nuclides = chain.reachable("Pu239");
 
-  std::map<std::string, double> ccMap;
-  ccMap["Pu239"] = 1.e24;
+  // std::map<std::string, double> ccMap;
+  // ccMap["Pu239"] = 1.e24;
 
-  Solver solver;
+  // Solver solver;
   // N = solver.run(chain, N, 86400);
-  std::vector<double> times = {
-      1e10, 1e11, 1e12, 1e13, 1e14,
-  };
-  auto N = solver.run(chain, ccMap, times);
+  // std::vector<double> times = {
+  //     1e10, 1e11, 1e12, 1e13, 1e14,
+  // };
+  // auto N = solver.run(chain, ccMap, times);
 
   // for (int i = 0; i < N.size(); i++) {
   //   if (N[i] != 0)

@@ -1,5 +1,6 @@
 #ifndef SOLVER_HPP_INCLUDED
 #define SOLVER_HPP_INCLUDED
+#include "results.h"
 #include <Eigen/Sparse>
 #include <chain.h>
 #include <complex>
