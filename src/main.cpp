@@ -8,6 +8,7 @@
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
+#include <highfive/highfive.hpp>
 #include <iostream>
 #include <map>
 #include <nuclide.h>
