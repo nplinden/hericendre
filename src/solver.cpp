@@ -1,10 +1,11 @@
 #include <Eigen/SparseLU>
 #include <fmt/core.h>
+#include <fmt/ranges.h>
 #include <solver.h>
 
 Solver::Solver() {}
 
-Eigen::VectorXd Solver::run(const Chain &chain, Eigen::VectorXd ccVector,
+std::vector<Eigen::VectorXd> Solver::run(const Chain &chain, Eigen::VectorXd ccVector,
                             double dt, double cutoff) {
   int n_nuclides = chain.nuclides_.size();
   SpComplex M = chain.decayMatrix().cast<cdouble>();
@@ -36,21 +37,7 @@ Eigen::VectorXd Solver::run(const Chain &chain, Eigen::VectorXd ccVector,
       realN[i] = 0.;
   }
 
-  return realN;
-}
-
-Eigen::VectorXd Solver::run(const Chain &chain,
-                            std::map<std::string, double> ccMap, double dt,
-                            double cutoff) {
-  Eigen::VectorXd N(chain.nuclides_.size());
-  for (int i; i < chain.nuclides_.size(); i++)
-    N(i) = 0.;
-
-  for (auto const &[key, val] : ccMap) {
-    int inuc = chain.nuclide_index(key);
-    N(inuc) = val;
-  }
-  return run(chain, N, dt, cutoff);
+  return std::vector<Eigen::VectorXd>({ccVector, realN});
 }
 
 std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
@@ -58,19 +45,34 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
                                          std::vector<double> times,
                                          double cutoff) {
   std::vector<double> dts;
+  fmt::print("{}\n", times);
   dts.push_back(times[0]);
-  for (int it = 1; it < dts.size(); it++)
+  for (int it = 1; it < times.size(); it++){
     dts.push_back(times[it] - times[it - 1]);
+  }
 
-  std::vector<Eigen::VectorXd> results;
+  std::vector<Eigen::VectorXd> concentrations;
   Eigen::VectorXd N(ccVector);
 
-  results.push_back(N);
+  fmt::print("{}\n", dts);
+  concentrations.push_back(N);
   for (const auto &dt : dts) {
-    N = run(chain, N, dt, cutoff);
-    results.push_back(N);
+    fmt::print("{}\n", dt);
+    N = run(chain, N, dt, cutoff).back();
+    concentrations.push_back(N);
   }
-  return results;
+
+  std::vector<std::string> nuclides;
+  for (const auto& nuclide: chain.nuclides_){
+    nuclides.push_back(nuclide->name_) ;
+  }
+  std::vector<double> times_with_zero;
+  times_with_zero.push_back(0.) ;
+  for (const auto& t: times){
+    times_with_zero.push_back(t) ;
+  }
+  results_ = Results(concentrations, nuclides, times_with_zero);
+  return concentrations;
 }
 
 std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
@@ -78,7 +80,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
                                          std::vector<double> times,
                                          double cutoff) {
   Eigen::VectorXd N(chain.nuclides_.size());
-  for (int i; i < chain.nuclides_.size(); i++)
+  for (int i = 0; i < chain.nuclides_.size(); i++)
     N(i) = 0.;
 
   for (auto const &[key, val] : ccMap) {

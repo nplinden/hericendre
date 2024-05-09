@@ -53,13 +53,13 @@ Chain::Chain(const char *path) {
     }
   }
 
-  std::cout << "Binding reaction\n";
-  for (auto &reac : reactions_) {
-    reac->parent_->reactions_.push_back(reac);
-    if (!reac->targetName_.empty())
-      reac->target_ = this->find(reac->targetName_);
-    reac->target_->reactionsUp_.push_back(reac);
-  }
+  // std::cout << "Binding reaction\n";
+  // for (auto &reac : reactions_) {
+  //   reac->parent_->reactions_.push_back(reac);
+  //   if (!reac->targetName_.empty())
+  //     reac->target_ = this->find(reac->targetName_);
+  //   reac->target_->reactionsUp_.push_back(reac);
+  // }
 
   // for (auto& nuc : nuclides_){
   //   if (!nuc->nfyParent_.empty()){

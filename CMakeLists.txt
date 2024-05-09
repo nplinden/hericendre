@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.22)
 project(Hericendre VERSION 0.1)
 set(TARGET Hericendre)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(pugixml)
 find_package(fmt)

@@ -1,4 +1,3 @@
-
 #ifndef INPUT_HPP_INCLUDE
 #define INPUT_HPP_INCLUDE
 #include <fmt/core.h>

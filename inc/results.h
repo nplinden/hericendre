@@ -1,6 +1,5 @@
-
-#ifndef SOLVER_HPP_INCLUDED
-#define SOLVER_HPP_INCLUDED
+#ifndef RESULTS_HPP_INCLUDED
+#define RESULTS_HPP_INCLUDED
 #include <Eigen/Sparse>
 #include <chain.h>
 #include <vector>
@@ -16,6 +15,8 @@ public:
           std::vector<std::string> nuclides, std::vector<double> times);
   Results(std::vector<Eigen::VectorXd> cc, std::vector<std::string> nuclides,
           std::vector<double> times);
+
+  void to_csv(std::string path, bool ignore_zeros = true);
 };
 
 #endif

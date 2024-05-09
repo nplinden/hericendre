@@ -1,5 +1,7 @@
 #include "input.h"
 #include "chain.h"
+#include "highfive/H5Easy.hpp"
+#include "results.h"
 #include "solver.h"
 #include "utils.h"
 #include "yaml-cpp/yaml.h"
@@ -7,8 +9,7 @@
 #include <numeric>
 
 Input::Input(std::string inputpath) {
-  YAML::Node input =
-      YAML::LoadFile("/home/nlinden/workspace/hericendre/data/example1.yaml");
+  YAML::Node input = YAML::LoadFile(inputpath);
   chainpath_ = input["chain"].as<std::string>();
   cyclemode_ = input["cycle_mode"].as<std::string>();
   std::vector<std::string> cycle = split(input["cycle"].as<std::string>());
@@ -39,15 +40,7 @@ Input::Input(std::string inputpath) {
 void Input::run() {
   Chain chain(chainpath_.c_str());
   Solver solver;
-  auto results = solver.run(chain, concentrations_, times_);
-
-  for (const auto &N : results) {
-    for (int i = 0; i < N.size(); i++) {
-      if (N[i] > 1e-15)
-        fmt::print("{:8s},{:.4e},{: .4e}\n", chain.nuclides_[i]->name_,
-                   chain.nuclides_[i]->dconst_, N[i]);
-    }
-    double sum = std::accumulate(N.begin(), N.end(), 0.);
-    fmt::print("sum = {:.4e}\n", sum);
-  }
+  solver.run(chain, concentrations_, times_);
+  auto results = solver.results_;
+  results.to_csv("results.csv");
 }

@@ -1,10 +1,10 @@
 #ifndef SOLVER_HPP_INCLUDED
 #define SOLVER_HPP_INCLUDED
-#include "results.h"
 #include <Eigen/Sparse>
 #include <chain.h>
 #include <complex>
 #include <map>
+#include <results.h>
 #include <vector>
 
 using cdouble = std::complex<double>;
@@ -15,39 +15,11 @@ public:
   Solver();
 
   /**
-   * \brief Solve the Bateman equation on a timestep of size dt seconds. with an
-   * initial composition defined by a map.
-   *
-   * \param chain: The chain to deplete with.
-   * \param A vector of initial concentration. Length of the vector should match
-   * the length of the chain's nuclides attribute.
-   * \param dt: The length of the time step in seconds.
-   * \param cutoff: Value under which a concentration should be rounded to zero.
-   * default = 0.
-   */
-  Eigen::VectorXd run(const Chain &chain, Eigen::VectorXd ccVector, double dt,
-                      double cutoff = 1.e-10);
-
-  /**
-   * \brief Solve the Bateman equation on a timestep of size dt seconds. with an
-   * initial composition defined by a vector.
-   *
-   * \param chain: The chain to deplete with.
-   * \param A map of initial concentration in the ccMap["nuclide"] =
-   * concentration format
-   * \param dt: The length of the time step in seconds.
-   * \param cutoff: Value under which a concentration should be rounded to zero.
-   * default = 0.
-   */
-  Eigen::VectorXd run(const Chain &chain, std::map<std::string, double> ccMap,
-                      double dt, double cutoff = 1.e-10);
-
-  /**
    * \brief Solve the Bateman equation for all provided times in
-   * seconds. with an initial composition defined by a map.
+   * seconds with an initial composition defined by a map.
    *
    * \param chain: The chain to deplete with.
-   * \param A vector of initial concentration. Length of the vector should match
+   * \param ccMap: A vector of initial concentration. Length of the vector should match
    * the length of the chain's nuclides attribute.
    * \param dt: The length of the time step in seconds.
    * \param cutoff: Value under which a concentration should be rounded to zero.
@@ -60,10 +32,10 @@ public:
 
   /**
    * \brief Solve the Bateman equation for all provided times in
-   * seconds. with an initial composition defined by a vector.
+   * seconds with an initial composition defined by a vector.
    *
    * \param chain: The chain to deplete with.
-   * \param A map of initial concentration in the ccMap["nuclide"] =
+   * \param ccVector: A map of initial concentration in the ccMap["nuclide"] =
    * concentration format
    * \param dt: The length of the time step in seconds.
    * \param cutoff: Value under which a concentration should be rounded to zero.
@@ -73,7 +45,24 @@ public:
                                    std::vector<double> times,
                                    double cutoff = 1.e-10);
 
+  Results results_;
+
 private:
+
+  /**
+   * \brief Solve the Bateman equation on a timestep of size dt seconds with an
+   * initial composition defined by a map.
+   *
+   * \param chain: The chain to deplete with.
+   * \param ccVector: A vector of initial concentration. Length of the vector should match
+   * the length of the chain's nuclides attribute.
+   * \param dt: The length of the time step in seconds.
+   * \param cutoff: Value under which a concentration should be rounded to zero.
+   * default = 0.
+   */
+  std::vector<Eigen::VectorXd> run(const Chain &chain, Eigen::VectorXd ccVector, double dt,
+                      double cutoff = 1.e-10);
+
   /**
    * \brief theta_i tabulated values for CRAM-48
    *
