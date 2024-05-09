@@ -1,8 +1,10 @@
 #ifndef DECAY_HPP_INCLUDED
 #define DECAY_HPP_INCLUDED
+#include <map>
 #include <memory>
 #include <pugixml.hpp>
 #include <string>
+#include <vector>
 
 class Nuclide;
 using NuclidePtr = std::shared_ptr<Nuclide>;
@@ -15,6 +17,9 @@ public:
    *
    */
   Decay(const pugi::xml_node &decayNode, NuclidePtr parent);
+
+  Decay(std::string type, std::string targetName_, double branchingRatio_,
+        NuclidePtr parent);
 
   // MEMBER VARIABLES
   /**
@@ -46,6 +51,8 @@ public:
    * \brief A branching value for the decay reaction.
    */
   double branchingRatio_;
+
+  static const std::map<std::string, std::vector<std::string>> SECONDARIES;
 };
 
 #endif

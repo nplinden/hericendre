@@ -22,16 +22,39 @@ Chain::Chain(const char *path) {
     nuclides_.back()->idInChain = nuclides_.size() - 1;
     for (pugi::xml_node decayNode = nuclide.child("decay"); decayNode;
          decayNode = decayNode.next_sibling("decay")) {
+
       decays_.push_back(
           std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
-    }
-    for (pugi::xml_node reactionNode = nuclide.child("reaction"); reactionNode;
-         reactionNode = reactionNode.next_sibling("reaction")) {
-      if (reactionNode.attribute("type").value() != std::string("fission")) {
-        reactions_.push_back(std::make_shared<NReaction>(
-            NReaction(reactionNode, nuclides_.back())));
+
+      std::string type = decays_.back()->type_;
+      double br = decays_.back()->branchingRatio_;
+      if (Decay::SECONDARIES.find(type) != Decay::SECONDARIES.end()) {
+        auto secVector = Decay::SECONDARIES.at(type);
+        std::map<std::string, double> multiplicities;
+        for (const auto &target : secVector) {
+          if (multiplicities.find(target) != multiplicities.end()) {
+            multiplicities[target] += br;
+          } else {
+            multiplicities[target] = br;
+          }
+        }
+
+        for (const auto &kv : multiplicities) {
+          fmt::print("{} -> [{} {}] -> {}\n", nuclides_.back()->name_, type,
+                     kv.second, kv.first);
+          decays_.push_back(std::make_shared<Decay>(
+              Decay(type, kv.first, kv.second, nuclides_.back())));
+        }
       }
     }
+    // for (pugi::xml_node reactionNode = nuclide.child("reaction");
+    // reactionNode;
+    //      reactionNode = reactionNode.next_sibling("reaction")) {
+    //   if (reactionNode.attribute("type").value() != std::string("fission")) {
+    //     reactions_.push_back(std::make_shared<NReaction>(
+    //         NReaction(reactionNode, nuclides_.back())));
+    //   }
+    // }
 
     // for (pugi::xml_node nfyNode = nuclide.child("neutron_fission_yields");
     //      nfyNode; nfyNode = nfyNode.next_sibling("neutron_fission_yields")) {
@@ -190,24 +213,48 @@ std::vector<std::string> Chain::reachable(std::string nucname) {
   return names;
 }
 
+void Chain::dump_matrix(std::string path) {
+  Eigen::MatrixXd dMat(this->decayMatrix());
+  fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
+
+  auto out = fmt::output_file(path);
+  out.print(",");
+  for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++) {
+    out.print("{}", this->nuclides_[inuc]->name_);
+    if (inuc < this->nuclides_.size() - 1)
+      out.print(",");
+  }
+  out.print("\n");
+  for (long int row = 0; row < dMat.rows(); row++) {
+    out.print("{},", this->nuclides_[row]->name_);
+    for (long int col = 0; col < dMat.cols(); col++) {
+      out.print("{}", dMat(row, col));
+      if (col < dMat.cols() - 1)
+        out.print(",");
+    }
+    out.print("\n");
+  }
+  out.close();
+}
+
 // void Chain::removeNuclide(std::string nuc) {}
 
 // void Chain::restrict(std::vector<std::string> allowed) {
-  // std::vector<NuclidePtr> newNuclides ;
-  // for (auto& nuc : nuclides_){
-  //   if (std::find(allowed.begin(), allowed.end(), nuc->name_) !=
-  //   allowed.end()){
-  //     newNuclides.push_back(nuc) ;
-  //   }
-  // }
+// std::vector<NuclidePtr> newNuclides ;
+// for (auto& nuc : nuclides_){
+//   if (std::find(allowed.begin(), allowed.end(), nuc->name_) !=
+//   allowed.end()){
+//     newNuclides.push_back(nuc) ;
+//   }
+// }
 
-  // std::vector<DecayPtr> newDecays ;
-  // for (auto& decay : decays_){
-  //   bool parentOk = std::find(allowed.begin(), allowed.end(),
-  //   decay->parentName_) != allowed.end() ; bool targetOk =
-  //   std::find(allowed.begin(), allowed.end(), decay->targetName_) !=
-  //   allowed.end() ; if (parentOk && targetOk){
-  //     newDecays.push_back(decay) ;
-  //   }
-  // }
+// std::vector<DecayPtr> newDecays ;
+// for (auto& decay : decays_){
+//   bool parentOk = std::find(allowed.begin(), allowed.end(),
+//   decay->parentName_) != allowed.end() ; bool targetOk =
+//   std::find(allowed.begin(), allowed.end(), decay->targetName_) !=
+//   allowed.end() ; if (parentOk && targetOk){
+//     newDecays.push_back(decay) ;
+//   }
+// }
 // }
