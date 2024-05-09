@@ -71,6 +71,8 @@ public:
    */
   void dfs(int nucid, std::vector<bool> &visited);
 
+  void dump_matrix(std::string path);
+
   /**
    * \brief Returns the list of all reachable nuclides names.
    *
@@ -105,5 +107,4 @@ public:
    */
   std::vector<NFYPtr> fissions_;
 };
-
 #endif

@@ -4,8 +4,6 @@
 #include "solver.h"
 #include "utils.h"
 #include "yaml-cpp/yaml.h"
-#include <iostream>
-#include <numeric>
 
 Input::Input(std::string inputpath) {
   YAML::Node input = YAML::LoadFile(inputpath);

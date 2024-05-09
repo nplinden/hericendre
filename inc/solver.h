@@ -19,11 +19,10 @@ public:
    * seconds with an initial composition defined by a map.
    *
    * \param chain: The chain to deplete with.
-   * \param ccMap: A vector of initial concentration. Length of the vector should match
-   * the length of the chain's nuclides attribute.
-   * \param dt: The length of the time step in seconds.
-   * \param cutoff: Value under which a concentration should be rounded to zero.
-   * default = 0.
+   * \param ccMap: A vector of initial concentration. Length of the vector
+   * should match the length of the chain's nuclides attribute. \param dt: The
+   * length of the time step in seconds. \param cutoff: Value under which a
+   * concentration should be rounded to zero. default = 0.
    */
   std::vector<Eigen::VectorXd> run(const Chain &chain,
                                    std::map<std::string, double> ccMap,
@@ -48,20 +47,18 @@ public:
   Results results_;
 
 private:
-
   /**
    * \brief Solve the Bateman equation on a timestep of size dt seconds with an
    * initial composition defined by a map.
    *
    * \param chain: The chain to deplete with.
-   * \param ccVector: A vector of initial concentration. Length of the vector should match
-   * the length of the chain's nuclides attribute.
-   * \param dt: The length of the time step in seconds.
-   * \param cutoff: Value under which a concentration should be rounded to zero.
-   * default = 0.
+   * \param ccVector: A vector of initial concentration. Length of the vector
+   * should match the length of the chain's nuclides attribute. \param dt: The
+   * length of the time step in seconds. \param cutoff: Value under which a
+   * concentration should be rounded to zero. default = 0.
    */
-  std::vector<Eigen::VectorXd> run(const Chain &chain, Eigen::VectorXd ccVector, double dt,
-                      double cutoff = 1.e-10);
+  std::vector<Eigen::VectorXd> run(const Chain &chain, Eigen::VectorXd ccVector,
+                                   double dt, double cutoff = 1.e-10);
 
   /**
    * \brief theta_i tabulated values for CRAM-48
