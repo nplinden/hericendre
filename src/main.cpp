@@ -17,6 +17,8 @@
 #include <vector>
 
 int main(int argc, char *argv[]) {
+  (void)argc;
+
   std::string inputpath(argv[1]) ;
   fmt::print("Running {:s}...\n", inputpath);
   Input myinput(inputpath);

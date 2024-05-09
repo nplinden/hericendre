@@ -15,7 +15,7 @@ Fission::Fission(const pugi::xml_node &nfyNode, NuclidePtr parent) {
     fy_[energy] = std::map<std::string, double>();
     std::vector<std::string> products = split(fyNode.child_value("products"));
     std::vector<std::string> data = split(fyNode.child_value("data"));
-    for (int i = 0; i < products.size(); i++) {
+    for (size_t i = 0; i < products.size(); i++) {
       fy_[energy][products[i]] = stod(data[i]);
     }
   }

@@ -27,8 +27,8 @@ public:
   // MEMBER FUNCTIONS
   void write(const char *path);
 
-  void restrict(std::vector<std::string> nuclides);
-  void removeNuclide(std::string nuc);
+  // void restrict(std::vector<std::string> nuclides);
+  // void removeNuclide(std::string nuc);
 
   /**
    * \brief Returns a pointer to the desired Nuclide object, as defined by

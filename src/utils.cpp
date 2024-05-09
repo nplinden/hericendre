@@ -16,7 +16,7 @@ std::vector<std::string> split(std::string str) {
 
 std::string concatenate(std::vector<std::string> strs) {
   std::string tmp = "";
-  for (const auto c : strs) {
+  for (const auto& c : strs) {
     tmp += c;
     tmp += " ";
   }

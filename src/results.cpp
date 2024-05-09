@@ -31,7 +31,7 @@ void Results::to_csv(std::string path, bool ignore_zeros){
   // CONTENT
   bool zero_flag;
   std::string line;
-  for (int inuc = 0; inuc < this->nuclides_.size(); inuc++){
+  for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++){
     line = fmt::format("{:s}", this->nuclides_[inuc]);
     zero_flag = true;
     for (const auto& concentrations: this->cc_){

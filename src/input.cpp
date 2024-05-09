@@ -13,7 +13,7 @@ Input::Input(std::string inputpath) {
   cyclemode_ = input["cycle_mode"].as<std::string>();
   std::vector<std::string> cycle = split(input["cycle"].as<std::string>());
   std::vector<double> times;
-  for (int i = 0; i < cycle.size(); i++) {
+  for (size_t i = 0; i < cycle.size(); i++) {
     if (i % 2 == 0)
       times.push_back(std::stod(cycle[i]));
     else
@@ -31,7 +31,7 @@ Input::Input(std::string inputpath) {
   std::vector<std::string> cc =
       split(input["concentrations"].as<std::string>());
 
-  for (int i = 0; i < cc.size(); i += 2) {
+  for (size_t i = 0; i < cc.size(); i += 2) {
     concentrations_[cc[i]] = stod(cc[i + 1]);
   }
 }
