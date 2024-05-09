@@ -155,7 +155,7 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
         auto paramNode = sourceNode.append_child("parameters");
         paramNode.text() = parameters.c_str();
       } else {
-        for (int i = 0; i < source->pairs_.size(); i++) {
+        for (size_t i = 0; i < source->pairs_.size(); i++) {
           auto p = source->pairs_[i];
           auto proba = source->pair_probabilities_[i];
           auto pairNode = sourceNode.append_child("pair");

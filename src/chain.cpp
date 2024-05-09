@@ -8,7 +8,8 @@
 Chain::Chain(const char *path) {
   fmt::print("entering Chain\n");
   pugi::xml_document doc;
-  pugi::xml_parse_result result = doc.load_file(path);
+  doc.load_file(path);
+  // pugi::xml_parse_result result = doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
@@ -117,7 +118,7 @@ NuclidePtr Chain::find(std::string name) const {
 }
 
 int Chain::nuclide_index(int nucid) const {
-  for (int i = 0; i < nuclides_.size(); i++) {
+  for (size_t i = 0; i < nuclides_.size(); i++) {
     if (nuclides_[i]->zam_ == nucid)
       return i;
   }
@@ -127,7 +128,7 @@ int Chain::nuclide_index(int nucid) const {
 }
 
 int Chain::nuclide_index(std::string name) const {
-  for (int i = 0; i < nuclides_.size(); i++) {
+  for (size_t i = 0; i < nuclides_.size(); i++) {
     if (nuclides_[i]->name_ == name)
       return i;
   }
@@ -139,7 +140,7 @@ int Chain::nuclide_index(std::string name) const {
 Eigen::SparseMatrix<double> Chain::decayMatrix() const {
   std::vector<Eigen::Triplet<double>> triplets;
   triplets.reserve(10000);
-  for (int inuc = 0; inuc < this->nuclides_.size(); inuc++) {
+  for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++) {
     NuclidePtr nuc = this->nuclides_[inuc];
     triplets.push_back(Eigen::Triplet<double>(inuc, inuc, -nuc->dconst_));
     for (const auto &d : nuc->decays_) {
@@ -189,9 +190,9 @@ std::vector<std::string> Chain::reachable(std::string nucname) {
   return names;
 }
 
-void Chain::removeNuclide(std::string nuc) {}
+// void Chain::removeNuclide(std::string nuc) {}
 
-void Chain::restrict(std::vector<std::string> allowed) {
+// void Chain::restrict(std::vector<std::string> allowed) {
   // std::vector<NuclidePtr> newNuclides ;
   // for (auto& nuc : nuclides_){
   //   if (std::find(allowed.begin(), allowed.end(), nuc->name_) !=
@@ -209,4 +210,4 @@ void Chain::restrict(std::vector<std::string> allowed) {
   //     newDecays.push_back(decay) ;
   //   }
   // }
-}
+// }

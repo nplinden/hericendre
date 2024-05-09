@@ -19,7 +19,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain, Eigen::VectorXd ccV
 
   Eigen::VectorX<cdouble> N = ccVector.cast<cdouble>();
   Eigen::SparseLU<SpComplex, Eigen::COLAMDOrdering<int>> solver;
-  for (int i = 0; i < theta48.size(); i++) {
+  for (size_t i = 0; i < theta48.size(); i++) {
     cdouble theta = theta48[i];
     cdouble alpha = alpha48[i];
 
@@ -47,7 +47,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
   std::vector<double> dts;
   fmt::print("{}\n", times);
   dts.push_back(times[0]);
-  for (int it = 1; it < times.size(); it++){
+  for (size_t it = 1; it < times.size(); it++){
     dts.push_back(times[it] - times[it - 1]);
   }
 
@@ -80,7 +80,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
                                          std::vector<double> times,
                                          double cutoff) {
   Eigen::VectorXd N(chain.nuclides_.size());
-  for (int i = 0; i < chain.nuclides_.size(); i++)
+  for (size_t i = 0; i < chain.nuclides_.size(); i++)
     N(i) = 0.;
 
   for (auto const &[key, val] : ccMap) {
