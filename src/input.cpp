@@ -1,6 +1,5 @@
 #include "input.h"
 #include "chain.h"
-#include "highfive/H5Easy.hpp"
 #include "results.h"
 #include "solver.h"
 #include "utils.h"
