@@ -1,5 +1,5 @@
 # Welcome to Héricendre
-Héricendre is a standalone Bateman equation solver. Its purpose is to be easy to use through easily readable `yaml` input file as well as (in the future) as python API. Its secondary purpose is to teach myself `c++`.
+Héricendre is a standalone Bateman equation solver. Its purpose is to be easy to use through human readable `yaml` input file as well as (in the future) as python API. Its secondary purpose is to teach myself `c++`.
 
 It uses depletion chain in the OpenMC `xml` format.
 
