@@ -9,7 +9,6 @@ Chain::Chain(const char *path) {
   fmt::print("entering Chain\n");
   pugi::xml_document doc;
   doc.load_file(path);
-  // pugi::xml_parse_result result = doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
@@ -135,8 +134,8 @@ NuclidePtr Chain::find(std::string name) const {
       return nuc;
     }
   }
-  std::string err_msg =
-      fmt::format("Nuclide {} does not exist in the chain", name);
+  std::string err_msg = fmt::format(
+      "[find(std::string name)] Nuclide {} does not exist in the chain", name);
   throw std::invalid_argument(err_msg);
 }
 
@@ -155,8 +154,9 @@ int Chain::nuclide_index(std::string name) const {
     if (nuclides_[i]->name_ == name)
       return i;
   }
-  std::string err_msg =
-      fmt::format("Nuclide {} does not exist in the chain", name);
+  std::string err_msg = fmt::format("[nuclide_index(std::string name)] Nuclide "
+                                    "{} does not exist in the chain",
+                                    name);
   throw std::invalid_argument(err_msg);
 }
 
