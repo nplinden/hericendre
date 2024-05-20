@@ -1,15 +1,17 @@
 #include "chain.h"
 #include "pugixml.hpp"
 #include <Eigen/Sparse>
+#include <cmath>
+#include <deque>
 #include <fmt/core.h>
 #include <fmt/os.h>
+#include <fmt/ranges.h>
 #include <iostream>
 
 Chain::Chain(const char *path) {
   fmt::print("entering Chain\n");
   pugi::xml_document doc;
   doc.load_file(path);
-  // pugi::xml_parse_result result = doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
@@ -40,10 +42,10 @@ Chain::Chain(const char *path) {
         }
 
         for (const auto &kv : multiplicities) {
-          fmt::print("{} -> [{} {}] -> {}\n", nuclides_.back()->name_, type,
-                     kv.second, kv.first);
-          decays_.push_back(std::make_shared<Decay>(
-              Decay(type, kv.first, kv.second, nuclides_.back())));
+          if (this->isIn(kv.first)) {
+            decays_.push_back(std::make_shared<Decay>(
+                Decay(type, kv.first, kv.second, nuclides_.back())));
+          }
         }
       }
     }
@@ -118,6 +120,15 @@ void Chain::write(const char *path) {
   doc.save_file(path, "  ");
 }
 
+bool Chain::isIn(std::string name) {
+  for (auto nuc : nuclides_) {
+    if (nuc->name_ == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 NuclidePtr Chain::find(int nucid) const {
   for (auto nuc : nuclides_) {
     if (nuc->zam_ == nucid) {
@@ -135,8 +146,8 @@ NuclidePtr Chain::find(std::string name) const {
       return nuc;
     }
   }
-  std::string err_msg =
-      fmt::format("Nuclide {} does not exist in the chain", name);
+  std::string err_msg = fmt::format(
+      "[find(std::string name)] Nuclide {} does not exist in the chain", name);
   throw std::invalid_argument(err_msg);
 }
 
@@ -155,8 +166,9 @@ int Chain::nuclide_index(std::string name) const {
     if (nuclides_[i]->name_ == name)
       return i;
   }
-  std::string err_msg =
-      fmt::format("Nuclide {} does not exist in the chain", name);
+  std::string err_msg = fmt::format("[nuclide_index(std::string name)] Nuclide "
+                                    "{} does not exist in the chain",
+                                    name);
   throw std::invalid_argument(err_msg);
 }
 
@@ -187,9 +199,8 @@ void Chain::dfs(int nucid, std::vector<bool> &visited) {
 
   std::vector<DecayPtr> decays = nuclides_[nucid]->decays_;
   std::vector<int> neighbours;
-  // fmt::print("{}: {}\n", nucid, nuclides_[nucid]->name_);
+
   for (DecayPtr decay : nuclides_[nucid]->decays_) {
-    // fmt::print("\t{}\n", decay->target_->name_);
     neighbours.push_back(decay->target_->idInChain);
   }
   for (const auto neighboursId : neighbours) {
@@ -202,6 +213,7 @@ std::vector<std::string> Chain::reachable(std::string nucname) {
   std::vector<bool> visited;
   for (int i = 0; i < n; i++)
     visited.push_back(false);
+
   int initialId = this->find(nucname)->idInChain;
   this->dfs(initialId, visited);
 
@@ -211,6 +223,63 @@ std::vector<std::string> Chain::reachable(std::string nucname) {
       names.push_back(nuclides_[i]->name_);
   }
   return names;
+}
+
+bool Chain::topological_sort() {
+  std::vector<NuclidePtr> sorted;
+  // Building the vector of incoming degrees
+  std::vector<int> incoming_degrees;
+  for (const auto &nuclide : this->nuclides_) {
+    incoming_degrees.push_back(nuclide->decaysUp_.size());
+    // fmt::print("{:8} {}\n", nuclide->name_, nuclide->decaysUp_.size());
+  }
+
+  // Initialize the queue with orphan nuclides
+  std::deque<NuclidePtr> queue;
+  for (size_t inuc = 0; inuc < incoming_degrees.size(); inuc++) {
+    if (incoming_degrees[inuc] == 0) {
+      queue.push_back(this->nuclides_[inuc]);
+    }
+  }
+
+  while (!queue.empty()) {
+    NuclidePtr front = queue.front();
+    sorted.push_back(front);
+    for (auto &decay : front->decays_) {
+      if (decay->hasTarget_) {
+        int targetId = decay->target_->idInChain;
+        incoming_degrees[targetId]--;
+        if (incoming_degrees[targetId] == 0)
+          queue.push_back(this->nuclides_[targetId]);
+      }
+    }
+    queue.pop_front();
+  }
+
+  if (sorted.size() != this->nuclides_.size()) {
+    return false;
+  } else {
+    this->nuclides_ = sorted;
+    for (size_t i = 0; i < this->nuclides_.size(); i++)
+      this->nuclides_[i]->idInChain = i;
+
+    return true;
+  }
+}
+
+void Chain::tweak_dconst() {
+  std::vector<double> dconsts;
+  std::map<double, std::vector<NuclidePtr>> duplicates;
+  for (const auto &nuclide : this->nuclides_) {
+    duplicates[nuclide->dconst_].push_back(nuclide);
+  }
+  for (auto const &[key, val] : duplicates) {
+    if (val.size() > 1) {
+      for (size_t i = 0; i < val.size(); i++) {
+        val[i]->dconst_ *= pow((1 + 1e-14), i);
+      }
+    }
+  }
 }
 
 void Chain::dump_matrix(std::string path) {

@@ -30,6 +30,8 @@ public:
   // void restrict(std::vector<std::string> nuclides);
   // void removeNuclide(std::string nuc);
 
+  bool isIn(std::string name);
+
   /**
    * \brief Returns a pointer to the desired Nuclide object, as defined by
    * its id.
@@ -63,7 +65,14 @@ public:
   int nuclide_index(std::string name) const;
 
   /**
-   * \brief An implementation of depth first search algorithme to find all
+   * \brief Dump the decay matrix to a csv file.
+   *
+   * \param path: Path of the file to write the matrix in.
+   */
+  void dump_matrix(std::string path);
+
+  /**
+   * \brief An implementation of depth first search algorithm to find all
    * visited nuclide nodes starting from an initial node.
    *
    * \param nucid: The id of the initial nuclide.
@@ -71,14 +80,24 @@ public:
    */
   void dfs(int nucid, std::vector<bool> &visited);
 
-  void dump_matrix(std::string path);
-
   /**
    * \brief Returns the list of all reachable nuclides names.
    *
    * \param std::string name: the name of the nuclide.
    */
   std::vector<std::string> reachable(std::string nucname);
+
+  /**
+   * \brief Sort the chain in the topological order if possible.
+   *
+   */
+  bool topological_sort();
+
+  /**
+   * \brief Tweaks decay constants of equal values by a factor of 1E-14.
+   *
+   */
+  void tweak_dconst();
 
   Eigen::SparseMatrix<double> decayMatrix() const;
 
