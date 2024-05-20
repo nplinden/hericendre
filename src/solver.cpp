@@ -19,7 +19,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
   std::vector<TrComplex> t_triplets;
   t_triplets.reserve(n_nuclides);
   for (int j = 0; j < n_nuclides; j++)
-    t_triplets.push_back(TrComplex(j, j, std::complex(1., 0.)));
+    t_triplets.push_back(TrComplex(j, j, std::complex<double>(1., 0.)));
   SpComplex Identity(n_nuclides, n_nuclides);
   Identity.setFromTriplets(t_triplets.begin(), t_triplets.end());
 

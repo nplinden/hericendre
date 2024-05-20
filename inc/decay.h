@@ -26,6 +26,10 @@ public:
    * \brief Type of decay. Can by sf, alpha, IT, beta-, ec/beta+, p, n, etc.
    */
   std::string type_;
+  /**
+   * \brief Wether the decay reaction has a target.
+   */
+  bool hasTarget_;
 
   /**
    * \brief Name of the resulting nuclide.

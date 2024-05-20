@@ -2,17 +2,27 @@
 #include "nuclide.h"
 
 Decay::Decay(const pugi::xml_node &decayNode, NuclidePtr parent) {
+  parentName_ = parent->name_;
+  parent_ = parent;
+
   type_ = decayNode.attribute("type").value();
-  targetName_ = decayNode.attribute("target").value();
+  if (decayNode.attribute("target")) {
+    targetName_ = decayNode.attribute("target").value();
+    hasTarget_ = true;
+    if (targetName_ == parentName_) {
+      targetName_ = "";
+      hasTarget_ = false;
+    }
+  } else {
+    targetName_ = "";
+    hasTarget_ = false;
+  }
 
   std::string br = decayNode.attribute("branching_ratio").value();
   if (!br.empty())
     branchingRatio_ = stod(br);
   else
     branchingRatio_ = 1.;
-
-  parentName_ = parent->name_;
-  parent_ = parent;
 };
 
 Decay::Decay(std::string type, std::string targetName, double branchingRatio,
