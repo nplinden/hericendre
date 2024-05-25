@@ -10,6 +10,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+add_subdirectory(vendor/eigen)
+
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(pugixml)
 find_package(fmt)
