@@ -5,29 +5,29 @@
 #include <cmath>
 #include <fmt/format.h>
 
-Nuclide::Nuclide(std::string name, double dconst) {
+Nuclide::Nuclide(const std::string &name, const double dconst) {
   name_ = name;
   dconst_ = dconst;
 };
 
 Nuclide::Nuclide(const pugi::xml_node &nuclideNode) {
   name_ = nuclideNode.attribute("name").value();
-  std::string halflife = nuclideNode.attribute("half_life").value();
+  const std::string halflife = nuclideNode.attribute("half_life").value();
   dconst_ = !halflife.empty() ? std::log(2) / stod(halflife) : 0.;
 
-  std::tuple<int, int, int> zam_tuple = getZam(name_);
+  const std::tuple<int, int, int> zam_tuple = getZam(name_);
   z_ = std::get<0>(zam_tuple);
   a_ = std::get<1>(zam_tuple);
   m_ = std::get<2>(zam_tuple);
   zam_ = 10000 * z_ + 10 * a_ + m_;
 
-  std::string nreac_str = nuclideNode.attribute("reactions").value();
+  const std::string nreac_str = nuclideNode.attribute("reactions").value();
   nreac_ = !nreac_str.empty() ? stoi(nreac_str) : 0;
 
-  std::string decay_str = nuclideNode.attribute("decay_modes").value();
+  const std::string decay_str = nuclideNode.attribute("decay_modes").value();
   ndecay_ = !decay_str.empty() ? stoi(decay_str) : 0;
 
-  std::string denergy_str = nuclideNode.attribute("decay_energy").value();
+  const std::string denergy_str = nuclideNode.attribute("decay_energy").value();
   denergy_ = !denergy_str.empty() ? stod(denergy_str) : 0.;
 
   for (pugi::xml_node sourceNode = nuclideNode.child("source"); sourceNode;
@@ -72,13 +72,13 @@ const std::map<std::string, int> Nuclide::ELEMENTS = {
     {"Db", 105}, {"Sg", 106}, {"Bh", 107}, {"Hs", 108}, {"Mt", 109},
     {"Ds", 110}, {"Rg", 111}};
 
-std::tuple<int, int, int> Nuclide::getZam(std::string name) {
+std::tuple<int, int, int> Nuclide::getZam(const std::string& name) {
   std::string element;
   std::string mass_str;
   std::string meta_str;
   bool elem_flag = true;
   bool mass_flag = false;
-  for (char &c : name) {
+  for (const char &c : name) {
     if (!isdigit(c) & elem_flag) {
       element += c;
     } else if (isdigit(c) & elem_flag) {
@@ -93,7 +93,7 @@ std::tuple<int, int, int> Nuclide::getZam(std::string name) {
     }
   }
   std::string meta_number_str;
-  for (char &c : meta_str) {
+  for (const char &c : meta_str) {
     if (isdigit(c))
       meta_number_str += c;
   }
@@ -103,7 +103,7 @@ std::tuple<int, int, int> Nuclide::getZam(std::string name) {
   return {z, a, m};
 }
 
-std::string Nuclide::str() { return name_; }
+std::string Nuclide::str() const { return name_; }
 
 bool Nuclide::operator<(const Nuclide &other) const {
   return zam_ < other.zam_;
@@ -123,7 +123,7 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
   nucNode.append_attribute("reactions") = this->nreac_;
 
   if (!this->decays_.empty()) {
-    for (auto decay : this->decays_) {
+    for (const auto& decay : this->decays_) {
       auto decNode = nucNode.append_child("decay");
       if (!decay->type_.empty())
         decNode.append_attribute("type") = decay->type_.c_str();
@@ -135,7 +135,7 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
   }
 
   if (!this->sources_.empty()) {
-    for (auto source : this->sources_) {
+    for (const auto& source : this->sources_) {
       auto sourceNode = nucNode.append_child("source");
       sourceNode.append_attribute("type") = source->type_.c_str();
       if (!source->interpolation_.empty())
@@ -143,8 +143,8 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
             source->interpolation_.c_str();
       sourceNode.append_attribute("particle") = source->particle_.c_str();
       if (source->type_ != "mixture") {
-        std::string parameters = "";
-        for (auto energy : source->energy_) {
+        std::string parameters;
+        for (const auto energy : source->energy_) {
           parameters += fmtDouble(energy);
           parameters += " ";
         }
@@ -166,7 +166,7 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
             distNode.append_attribute("interpolation") =
                 p.interpolation_.c_str();
 
-          std::string parameters = "";
+          std::string parameters;
           for (auto energy : p.energy_)
             parameters += fmt::format("{} ", energy);
           for (auto intensity : p.intensity_)
@@ -180,7 +180,7 @@ void Nuclide::addNode(pugi::xml_node &rootnode) {
   }
 
   if (!this->reactions_.empty()) {
-    for (auto reaction : this->reactions_) {
+    for (const auto& reaction : this->reactions_) {
       auto reacNode = nucNode.append_child("reaction");
       reacNode.append_attribute("type") = reaction->type_.c_str();
       reacNode.append_attribute("Q") = fmtDouble(reaction->Q_).c_str();

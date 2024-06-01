@@ -16,10 +16,10 @@ public:
    * to the decaying nuclide.
    *
    */
-  Decay(const pugi::xml_node &decayNode, NuclidePtr parent);
+  Decay(const pugi::xml_node &decayNode, const NuclidePtr& parent);
 
-  Decay(std::string type, std::string targetName_, double branchingRatio_,
-        NuclidePtr parent);
+  Decay(const std::string& type, const std::string& targetName, const double& branchingRatio,
+             const NuclidePtr& parent);
 
   // MEMBER VARIABLES
   /**

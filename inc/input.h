@@ -8,9 +8,9 @@
 class Input {
 public:
   // CONSTRUCTORS
-  Input(std::string inputpath);
+  explicit Input(const std::string &inputpath);
 
-  void run();
+  void run() const;
 
   std::string inputpath_;
   std::string chainpath_;

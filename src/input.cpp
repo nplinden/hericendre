@@ -5,11 +5,11 @@
 #include "utils.h"
 #include "yaml-cpp/yaml.h"
 
-Input::Input(std::string inputpath) {
+Input::Input(const std::string &inputpath) {
   YAML::Node input = YAML::LoadFile(inputpath);
   chainpath_ = input["chain"].as<std::string>();
   cyclemode_ = input["cycle_mode"].as<std::string>();
-  std::vector<std::string> cycle = split(input["cycle"].as<std::string>());
+  const std::vector<std::string> cycle = split(input["cycle"].as<std::string>());
   std::vector<double> times;
   for (size_t i = 0; i < cycle.size(); i++) {
     if (i % 2 == 0)
@@ -26,7 +26,7 @@ Input::Input(std::string inputpath) {
     }
   };
 
-  std::vector<std::string> cc =
+  const std::vector<std::string> cc =
       split(input["concentrations"].as<std::string>());
 
   for (size_t i = 0; i < cc.size(); i += 2) {
@@ -34,8 +34,8 @@ Input::Input(std::string inputpath) {
   }
 }
 
-void Input::run() {
-  Chain chain(chainpath_.c_str());
+void Input::run() const {
+  const Chain chain(chainpath_.c_str());
   Solver solver;
   solver.run(chain, concentrations_, times_);
   auto results = solver.results_;

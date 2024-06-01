@@ -1,6 +1,4 @@
 #include <fmt/core.h>
-#include <fmt/os.h>
-#include <fmt/ranges.h>
 #include <source.h>
 #include <vector>
 
@@ -12,19 +10,19 @@ Source::Source(const pugi::xml_node &sourceNode) {
   auto params = std::string(sourceNode.child_value("parameters"));
   if (!params.empty()) {
     std::vector<std::string> params_vector;
-    params_vector.push_back(std::string());
+    params_vector.emplace_back();
     for (const auto c : params) {
       if (c == ' ') {
-        params_vector.push_back(std::string());
+        params_vector.emplace_back();
       } else {
         params_vector.back() += c;
       }
     }
-    int length = params_vector.size() / 2;
+    const size_t length = params_vector.size() / 2;
     std::vector<std::string> intensity(params_vector.begin() + length,
                                        params_vector.end());
     std::vector<std::string> energy(params_vector.begin(),
-                                    params_vector.begin() + length);
+                                    length + params_vector.begin());
     for (auto &e : energy) {
       this->energy_.push_back(stod(e));
     }
@@ -38,7 +36,7 @@ Source::Source(const pugi::xml_node &sourceNode) {
          pairNode = pairNode.next_sibling("pair")) {
       std::string proba = pairNode.attribute("probability").value();
       pair_probabilities_.push_back(stod(proba));
-      pairs_.push_back(pairNode.child("dist"));
+      pairs_.emplace_back(pairNode.child("dist"));
     }
   }
 }

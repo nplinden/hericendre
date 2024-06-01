@@ -8,21 +8,21 @@
  *
  * \param str
  */
-std::vector<std::string> split(std::string str);
+std::vector<std::string> split(const std::string& str);
 
 /**
  * \brief Concatenate a vector of strings in a single string,
  * with space separators.
  *
- * \param A vector of strings
+ * \param strs: A vector of strings
  */
-std::string concatenate(std::vector<std::string> strs);
+std::string concatenate(const std::vector<std::string>& strs);
 
 /**
  * \brief Format a double using fmt, if the double has an integer
  * value, add a .0 suffix.
  *
- *\param A double.
+ *\param d: A double.
  */
 std::string fmtDouble(double d);
 

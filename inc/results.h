@@ -1,7 +1,6 @@
 #ifndef RESULTS_HPP_INCLUDED
 #define RESULTS_HPP_INCLUDED
 #include <Eigen/Sparse>
-#include <chain.h>
 #include <vector>
 
 class Results {
@@ -11,12 +10,12 @@ public:
   std::vector<std::vector<double>> cc_;
 
   Results();
-  Results(std::vector<std::vector<double>> cc,
-          std::vector<std::string> nuclides, std::vector<double> times);
-  Results(std::vector<Eigen::VectorXd> cc, std::vector<std::string> nuclides,
-          std::vector<double> times);
+  Results(const std::vector<std::vector<double>> &cc,
+          const std::vector<std::string> &nuclides, const std::vector<double> &times);
+  Results(const std::vector<Eigen::VectorXd> &cc, const std::vector<std::string> &nuclides,
+          const std::vector<double> &times);
 
-  void to_csv(std::string path, bool ignore_zeros = true);
+  void to_csv(const std::string &path, bool ignore_zeros = true);
 };
 
 #endif

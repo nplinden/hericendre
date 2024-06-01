@@ -10,7 +10,7 @@ public:
    * \brief Creates a Source object using an source-tagged xml node.
    *
    */
-  Source(const pugi::xml_node &sourceNode);
+  explicit Source(const pugi::xml_node &sourceNode);
   /**
    * \brief The type of source, "discrete", "tabulated", etc.
    */
