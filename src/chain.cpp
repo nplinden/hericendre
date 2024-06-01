@@ -1,20 +1,18 @@
 #include "chain.h"
-#include "pugixml.hpp"
 #include <Eigen/Sparse>
 #include <cmath>
 #include <deque>
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
-#include <iostream>
 
-Chain::Chain(std::string path) { Chain(path.c_str()); }
+Chain::Chain(const std::string& path) : Chain(path.c_str()) {}
 
 Chain::Chain(const char *path) {
   // fmt::print("entering Chain\n");
   pugi::xml_document doc;
   doc.load_file(path);
-  pugi::xml_node chainxml = doc.child("depletion_chain");
+  const pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
   // std::cout << "Initialization:\n";
@@ -31,7 +29,7 @@ Chain::Chain(const char *path) {
           std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
 
       std::string type = decays_.back()->type_;
-      double br = decays_.back()->branchingRatio_;
+      const double br = decays_.back()->branchingRatio_;
       if (Decay::SECONDARIES.find(type) != Decay::SECONDARIES.end()) {
         auto secVector = Decay::SECONDARIES.at(type);
         std::map<std::string, double> multiplicities;
@@ -43,10 +41,10 @@ Chain::Chain(const char *path) {
           }
         }
 
-        for (const auto &kv : multiplicities) {
-          if (this->isIn(kv.first)) {
+        for (const auto &[k, v] : multiplicities) {
+          if (this->isIn(k)) {
             decays_.push_back(std::make_shared<Decay>(
-                Decay(type, kv.first, kv.second, nuclides_.back())));
+                Decay(type, k, v, nuclides_.back())));
           }
         }
       }
@@ -110,13 +108,13 @@ Chain::Chain(const char *path) {
   // std::cout << "done" << std::endl;
 }
 
-Chain::Chain() {}
+Chain::Chain() = default;
 
 void Chain::write(const char *path) {
   pugi::xml_document doc;
   auto root = doc.append_child("depletion_chain");
 
-  for (auto nuclide : this->nuclides_) {
+  for (const auto& nuclide : this->nuclides_) {
     nuclide->addNode(root);
   }
   doc.save_file(path, "  ");

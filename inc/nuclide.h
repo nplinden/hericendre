@@ -101,7 +101,7 @@ public:
   /**
    * \brief The index of the isotope in a Chain object.
    */
-  int idInChain;
+  size_t idInChain;
 
   /**
    * \brief The number of reaction types that the nuclide can undergo.

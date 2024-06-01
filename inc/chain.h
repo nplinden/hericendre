@@ -19,10 +19,10 @@ public:
    * \brief Builds a chain object from a path to a chain file in the OpenMC xml
    * format.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param path: path to a depletion chain.
    */
-  Chain(const char *path);
-  Chain(std::string path);
+  explicit Chain(const char *path);
+  explicit Chain(const std::string& path);
   Chain();
 
   // MEMBER FUNCTIONS
@@ -37,7 +37,7 @@ public:
    * \brief Returns a pointer to the desired Nuclide object, as defined by
    * its id.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
    */
   NuclidePtr find(int nucid) const;
 
@@ -45,7 +45,7 @@ public:
    * \brief Returns a pointer to the desired Nuclide object, as defined by
    * its name.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param name: the name of the nuclide.
    */
   NuclidePtr find(std::string name) const;
 
@@ -53,7 +53,7 @@ public:
    * \brief Finds the index of a nuclide as defined by its id in the nuclide
    * vector.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
    */
   int nuclide_index(int nucid) const;
 
@@ -61,7 +61,7 @@ public:
    * \brief Finds the index of a nuclide as defined by its name in the nuclide
    * vector.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param name: the name of the nuclide.
    */
   int nuclide_index(std::string name) const;
 
@@ -84,7 +84,7 @@ public:
   /**
    * \brief Returns the list of all reachable nuclides names.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param nucname: the name of the nuclide.
    */
   std::vector<std::string> reachable(std::string nucname);
 
