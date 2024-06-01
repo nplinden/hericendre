@@ -14,7 +14,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
 
   std::vector<TrComplex> t_triplets;
   t_triplets.reserve(n_nuclides);
-  for (int j = 0; j < n_nuclides; j++)
+  for (size_t j = 0; j < n_nuclides; j++)
     t_triplets.emplace_back(j, j, std::complex<double>(1., 0.));
   SpComplex Identity(n_nuclides, n_nuclides);
   Identity.setFromTriplets(t_triplets.begin(), t_triplets.end());
@@ -46,18 +46,13 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
                                          const Eigen::VectorXd &ccVector,
                                          std::vector<double> times,
                                          const double cutoff) {
-  std::vector<double> dts;
-  dts.push_back(times[0]);
-  for (size_t it = 1; it < times.size(); it++) {
-    dts.push_back(times[it] - times[it - 1]);
-  }
-
   std::vector<Eigen::VectorXd> concentrations;
   Eigen::VectorXd N(ccVector);
 
   concentrations.push_back(N);
-  for (const auto &dt : dts) {
-    fmt::print("{}\n", dt);
+  for (size_t it = 1; it < times.size(); it++) {
+    const double dt = times[it] - times[it - 1];
+    fmt::print("{:.4e} -> {:.4e}\n", times[it-1], times[it]);
     N = run(chain, N, dt, cutoff).back();
     concentrations.push_back(N);
   }
