@@ -80,16 +80,21 @@ public:
    * \brief The decay constant of the nuclide.
    */
   double dconst_;
+  double getDconst() { return dconst_; };
+  void setDconst(double dconst) { dconst_ = dconst; };
 
   /**
    * \brief The decay energy of the nuclide.
    */
   double denergy_;
+  double getDenergy() { return denergy_; };
 
   /**
    * \brief The name of the nuclide.
    */
   std::string name_;
+  std::string getName() { return name_; };
+  void setName(std::string name) { name_ = name; };
 
   // std::string nfyParent_ = "";
 

@@ -8,14 +8,16 @@
 #include <fmt/ranges.h>
 #include <iostream>
 
+Chain::Chain(std::string path) { Chain(path.c_str()); }
+
 Chain::Chain(const char *path) {
-  fmt::print("entering Chain\n");
+  // fmt::print("entering Chain\n");
   pugi::xml_document doc;
   doc.load_file(path);
   pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
-  std::cout << "Initialization:\n";
+  // std::cout << "Initialization:\n";
   for (pugi::xml_node nuclide = chainxml.child("nuclide"); nuclide;
        nuclide = nuclide.next_sibling("nuclide")) {
 
@@ -64,12 +66,12 @@ Chain::Chain(const char *path) {
     //       std::make_shared<Fission>(Fission(nfyNode, nuclides_.back())));
     // }
   }
-  std::cout << "\t" << nuclides_.size() << " nuclides found\n";
-  std::cout << "\t" << decays_.size() << " decay reactions found\n";
-  std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
+  // std::cout << "\t" << nuclides_.size() << " nuclides found\n";
+  // std::cout << "\t" << decays_.size() << " decay reactions found\n";
+  // std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
   // std::cout << "\t" << fissions_.size() << " fissions found\n";
 
-  std::cout << "Binding decays\n";
+  // std::cout << "Binding decays\n";
   // BINDING STEP
   for (auto &dec : decays_) {
     dec->parent_->decays_.push_back(dec);
@@ -284,7 +286,7 @@ void Chain::tweak_dconst() {
 
 void Chain::dump_matrix(std::string path) {
   Eigen::MatrixXd dMat(this->decayMatrix());
-  fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
+  // fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
 
   auto out = fmt::output_file(path);
   out.print(",");

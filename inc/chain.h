@@ -22,6 +22,7 @@ public:
    * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
    */
   Chain(const char *path);
+  Chain(std::string path);
   Chain();
 
   // MEMBER FUNCTIONS
