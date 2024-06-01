@@ -2,18 +2,17 @@
 #include <Eigen/Sparse>
 #include <cmath>
 
-DecaySolver::DecaySolver(){};
+DecaySolver::DecaySolver()= default;
 
 void DecaySolver::compute_coeffs(Chain &chain,
                                  std::map<std::string, double> ccMap) {
-  bool success = chain.topological_sort();
-  if (!success)
+  if (!chain.topological_sort())
     throw std::invalid_argument("Chain cannot be topologically sorted");
   chain.tweak_dconst();
   Eigen::SparseMatrix<double> matrix = chain.decayMatrix();
 
   for (size_t inuc = 0; inuc < chain.nuclides_.size(); inuc++) {
-    auto nuclide = chain.nuclides_[inuc];
+    const auto nuclide = chain.nuclides_[inuc];
     // fmt::print("i={} {}\n", inuc, nuclide->name_);
     // fmt::print("\tλ={}\n", nuclide->dconst_);
     double Cii = nuclide->dconst_;
@@ -23,9 +22,9 @@ void DecaySolver::compute_coeffs(Chain &chain,
     if (Cii != 0.) {
       // COMPUTING Ns(i)
       for (const auto &decay : nuclide->decaysUp_) {
-        double br = decay->branchingRatio_;
-        double dconst = decay->parent_->dconst_;
-        double Cik = br * dconst;
+        const double br = decay->branchingRatio_;
+        const double dconst = decay->parent_->dconst_;
+        const double Cik = br * dconst;
         Ns[nuclide->idInChain] += Cik * Ns[decay->parent_->idInChain] / Cii;
       }
       // fmt::print("\tNs({})={}\n", nuclide->name_, Ns[nuclide->idInChain]);
@@ -91,22 +90,21 @@ void DecaySolver::compute_coeffs(Chain &chain,
 }
 
 std::vector<std::vector<double>>
-DecaySolver::run(Chain &chain, std::map<std::string, double> ccMap,
+DecaySolver::run(Chain &chain, const std::map<std::string, double>& ccMap,
                  std::vector<double> times) {
-  size_t nt = times.size();
-  size_t nn = chain.nuclides_.size();
+  const size_t nt = times.size();
+  const size_t nn = chain.nuclides_.size();
   this->compute_coeffs(chain, ccMap);
   std::vector<std::vector<double>> N(nt + 1, std::vector<double>(nn, 0));
   for (auto const &[key, val] : ccMap) {
-    int inuc = chain.nuclide_index(key);
+    const size_t inuc = chain.nuclide_index(key);
     N[0][inuc] = val;
   }
 
   for (size_t it = 0; it < nt; it++) {
     fmt::print("{} {}\n", it, times[it]);
     for (size_t inuc = 0; inuc < nn; inuc++) {
-      auto nuclide = chain.nuclides_[inuc];
-      if (nuclide->dconst_ != 0) {
+      if (chain.nuclides_[inuc]->dconst_ != 0) {
         // unstable case
         N[it + 1][inuc] += Ns[inuc];
         for (size_t jnuc = 0; jnuc <= inuc; jnuc++)

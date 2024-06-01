@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 #include <nuclide.h>
-#include <pugixml.hpp>
 #include <string>
 #include <vector>
 
@@ -17,7 +16,7 @@ public:
    * \param NFYNode
    * \param parent
    */
-  Fission(const pugi::xml_node &NFYNode, NuclidePtr parent);
+  Fission(const pugi::xml_node &NFYNode, const NuclidePtr &parent);
 
   /**
    * \brief Add a fission yield node to a parent node.

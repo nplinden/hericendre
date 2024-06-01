@@ -1,21 +1,21 @@
 #include "chain.h"
-#include "pugixml.hpp"
 #include <Eigen/Sparse>
 #include <cmath>
 #include <deque>
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
-#include <iostream>
+
+Chain::Chain(const std::string& path) : Chain(path.c_str()) {}
 
 Chain::Chain(const char *path) {
-  fmt::print("entering Chain\n");
+  // fmt::print("entering Chain\n");
   pugi::xml_document doc;
   doc.load_file(path);
-  pugi::xml_node chainxml = doc.child("depletion_chain");
+  const pugi::xml_node chainxml = doc.child("depletion_chain");
 
   // INTIALIZATION STEP
-  std::cout << "Initialization:\n";
+  // std::cout << "Initialization:\n";
   for (pugi::xml_node nuclide = chainxml.child("nuclide"); nuclide;
        nuclide = nuclide.next_sibling("nuclide")) {
 
@@ -29,7 +29,7 @@ Chain::Chain(const char *path) {
           std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
 
       std::string type = decays_.back()->type_;
-      double br = decays_.back()->branchingRatio_;
+      const double br = decays_.back()->branchingRatio_;
       if (Decay::SECONDARIES.find(type) != Decay::SECONDARIES.end()) {
         auto secVector = Decay::SECONDARIES.at(type);
         std::map<std::string, double> multiplicities;
@@ -41,10 +41,10 @@ Chain::Chain(const char *path) {
           }
         }
 
-        for (const auto &kv : multiplicities) {
-          if (this->isIn(kv.first)) {
+        for (const auto &[k, v] : multiplicities) {
+          if (this->isIn(k)) {
             decays_.push_back(std::make_shared<Decay>(
-                Decay(type, kv.first, kv.second, nuclides_.back())));
+                Decay(type, k, v, nuclides_.back())));
           }
         }
       }
@@ -64,12 +64,12 @@ Chain::Chain(const char *path) {
     //       std::make_shared<Fission>(Fission(nfyNode, nuclides_.back())));
     // }
   }
-  std::cout << "\t" << nuclides_.size() << " nuclides found\n";
-  std::cout << "\t" << decays_.size() << " decay reactions found\n";
-  std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
+  // std::cout << "\t" << nuclides_.size() << " nuclides found\n";
+  // std::cout << "\t" << decays_.size() << " decay reactions found\n";
+  // std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
   // std::cout << "\t" << fissions_.size() << " fissions found\n";
 
-  std::cout << "Binding decays\n";
+  // std::cout << "Binding decays\n";
   // BINDING STEP
   for (auto &dec : decays_) {
     dec->parent_->decays_.push_back(dec);
@@ -108,25 +108,23 @@ Chain::Chain(const char *path) {
   // std::cout << "done" << std::endl;
 }
 
-Chain::Chain() {}
+Chain::Chain() = default;
 
-void Chain::write(const char *path) {
+bool Chain::write(const char *path) {
   pugi::xml_document doc;
   auto root = doc.append_child("depletion_chain");
 
-  for (auto nuclide : this->nuclides_) {
+  for (const auto& nuclide : this->nuclides_) {
     nuclide->addNode(root);
   }
-  doc.save_file(path, "  ");
+  return doc.save_file(path, "  ");
 }
 
-bool Chain::isIn(std::string name) {
-  for (auto nuc : nuclides_) {
-    if (nuc->name_ == name) {
-      return true;
-    }
-  }
-  return false;
+bool Chain::isIn(const std::string& name) const {
+  return std::any_of(
+    nuclides_.begin(),
+    nuclides_.end(),
+    [name](const NuclidePtr& p) {return name == p->name_;});
 }
 
 NuclidePtr Chain::find(int nucid) const {
@@ -135,12 +133,12 @@ NuclidePtr Chain::find(int nucid) const {
       return nuc;
     }
   }
-  std::string err_msg =
+  const std::string err_msg =
       fmt::format("Nuclide zam {} does not exist in the chain", nucid);
   throw std::invalid_argument(err_msg);
 }
 
-NuclidePtr Chain::find(std::string name) const {
+NuclidePtr Chain::find(const std::string& name) const {
   for (auto nuc : nuclides_) {
     if (nuc->name_ == name) {
       return nuc;
@@ -151,17 +149,17 @@ NuclidePtr Chain::find(std::string name) const {
   throw std::invalid_argument(err_msg);
 }
 
-int Chain::nuclide_index(int nucid) const {
+size_t Chain::nuclide_index(int nucid) const {
   for (size_t i = 0; i < nuclides_.size(); i++) {
     if (nuclides_[i]->zam_ == nucid)
       return i;
   }
-  std::string err_msg =
+  const std::string err_msg =
       fmt::format("Nuclide zam {} does not exist in the chain", nucid);
   throw std::invalid_argument(err_msg);
 }
 
-int Chain::nuclide_index(std::string name) const {
+size_t Chain::nuclide_index(const std::string& name) const {
   for (size_t i = 0; i < nuclides_.size(); i++) {
     if (nuclides_[i]->name_ == name)
       return i;
@@ -176,13 +174,12 @@ Eigen::SparseMatrix<double> Chain::decayMatrix() const {
   std::vector<Eigen::Triplet<double>> triplets;
   triplets.reserve(10000);
   for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++) {
-    NuclidePtr nuc = this->nuclides_[inuc];
-    triplets.push_back(Eigen::Triplet<double>(inuc, inuc, -nuc->dconst_));
+    const NuclidePtr nuc = this->nuclides_[inuc];
+    triplets.emplace_back(inuc, inuc, -nuc->dconst_);
     for (const auto &d : nuc->decays_) {
       if (!d->targetName_.empty()) {
-        int jnuc = this->nuclide_index(d->targetName_);
-        triplets.push_back(Eigen::Triplet<double>(
-            jnuc, inuc, nuc->dconst_ * d->branchingRatio_));
+        size_t jnuc = this->nuclide_index(d->targetName_);
+        triplets.emplace_back(jnuc, inuc, nuc->dconst_ * d->branchingRatio_);
       }
     }
   }
@@ -192,15 +189,15 @@ Eigen::SparseMatrix<double> Chain::decayMatrix() const {
   return M;
 }
 
-void Chain::dfs(int nucid, std::vector<bool> &visited) {
+void Chain::dfs(const size_t& nucid, std::vector<bool> &visited) {
   if (visited[nucid])
     return;
   visited[nucid] = true;
 
   std::vector<DecayPtr> decays = nuclides_[nucid]->decays_;
-  std::vector<int> neighbours;
+  std::vector<size_t> neighbours;
 
-  for (DecayPtr decay : nuclides_[nucid]->decays_) {
+  for (const DecayPtr& decay : nuclides_[nucid]->decays_) {
     neighbours.push_back(decay->target_->idInChain);
   }
   for (const auto neighboursId : neighbours) {
@@ -208,17 +205,17 @@ void Chain::dfs(int nucid, std::vector<bool> &visited) {
   }
 }
 
-std::vector<std::string> Chain::reachable(std::string nucname) {
-  int n = nuclides_.size();
+std::vector<std::string> Chain::reachable(const std::string& nucname) {
+  const size_t n = nuclides_.size();
   std::vector<bool> visited;
-  for (int i = 0; i < n; i++)
+  for (size_t i = 0; i < n; i++)
     visited.push_back(false);
 
-  int initialId = this->find(nucname)->idInChain;
+  const size_t initialId = this->find(nucname)->idInChain;
   this->dfs(initialId, visited);
 
   std::vector<std::string> names;
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     if (visited[i])
       names.push_back(nuclides_[i]->name_);
   }
@@ -228,7 +225,7 @@ std::vector<std::string> Chain::reachable(std::string nucname) {
 bool Chain::topological_sort() {
   std::vector<NuclidePtr> sorted;
   // Building the vector of incoming degrees
-  std::vector<int> incoming_degrees;
+  std::vector<size_t> incoming_degrees;
   for (const auto &nuclide : this->nuclides_) {
     incoming_degrees.push_back(nuclide->decaysUp_.size());
     // fmt::print("{:8} {}\n", nuclide->name_, nuclide->decaysUp_.size());
@@ -245,9 +242,9 @@ bool Chain::topological_sort() {
   while (!queue.empty()) {
     NuclidePtr front = queue.front();
     sorted.push_back(front);
-    for (auto &decay : front->decays_) {
+    for (const auto &decay : front->decays_) {
       if (decay->hasTarget_) {
-        int targetId = decay->target_->idInChain;
+        const size_t targetId = decay->target_->idInChain;
         incoming_degrees[targetId]--;
         if (incoming_degrees[targetId] == 0)
           queue.push_back(this->nuclides_[targetId]);
@@ -282,9 +279,9 @@ void Chain::tweak_dconst() {
   }
 }
 
-void Chain::dump_matrix(std::string path) {
+void Chain::dump_matrix(const std::string& path) const {
   Eigen::MatrixXd dMat(this->decayMatrix());
-  fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
+  // fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
 
   auto out = fmt::output_file(path);
   out.print(",");

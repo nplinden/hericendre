@@ -19,24 +19,25 @@ public:
    * \brief Builds a chain object from a path to a chain file in the OpenMC xml
    * format.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param path: path to a depletion chain.
    */
-  Chain(const char *path);
+  explicit Chain(const char *path);
+  explicit Chain(const std::string& path);
   Chain();
 
   // MEMBER FUNCTIONS
-  void write(const char *path);
+  bool write(const char *path);
 
   // void restrict(std::vector<std::string> nuclides);
   // void removeNuclide(std::string nuc);
 
-  bool isIn(std::string name);
+  bool isIn(const std::string& name) const;
 
   /**
    * \brief Returns a pointer to the desired Nuclide object, as defined by
    * its id.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
    */
   NuclidePtr find(int nucid) const;
 
@@ -44,32 +45,32 @@ public:
    * \brief Returns a pointer to the desired Nuclide object, as defined by
    * its name.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param name: the name of the nuclide.
    */
-  NuclidePtr find(std::string name) const;
+  NuclidePtr find(const std::string& name) const;
 
   /**
    * \brief Finds the index of a nuclide as defined by its id in the nuclide
    * vector.
    *
-   * \param int nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
+   * \param nucid: the id of the nuclide. id = 10000 * Z + 10 * A + E
    */
-  int nuclide_index(int nucid) const;
+  size_t nuclide_index(int nucid) const;
 
   /**
    * \brief Finds the index of a nuclide as defined by its name in the nuclide
    * vector.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param name: the name of the nuclide.
    */
-  int nuclide_index(std::string name) const;
+  size_t nuclide_index(const std::string& name) const;
 
   /**
    * \brief Dump the decay matrix to a csv file.
    *
    * \param path: Path of the file to write the matrix in.
    */
-  void dump_matrix(std::string path);
+  void dump_matrix(const std::string& path) const;
 
   /**
    * \brief An implementation of depth first search algorithm to find all
@@ -78,14 +79,14 @@ public:
    * \param nucid: The id of the initial nuclide.
    * \param visited: A node visitation record.
    */
-  void dfs(int nucid, std::vector<bool> &visited);
+  void dfs(const size_t& nucid, std::vector<bool> &visited);
 
   /**
    * \brief Returns the list of all reachable nuclides names.
    *
-   * \param std::string name: the name of the nuclide.
+   * \param nucname: the name of the nuclide.
    */
-  std::vector<std::string> reachable(std::string nucname);
+  std::vector<std::string> reachable(const std::string& nucname);
 
   /**
    * \brief Sort the chain in the topological order if possible.

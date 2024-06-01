@@ -1,12 +1,12 @@
 #include "utils.h"
 #include <fmt/format.h>
 
-std::vector<std::string> split(std::string str) {
+std::vector<std::string> split(const std::string& str) {
   std::vector<std::string> vect;
-  vect.push_back(std::string());
+  vect.emplace_back();
   for (const auto c : str) {
     if (c == ' ') {
-      vect.push_back(std::string());
+      vect.emplace_back();
     } else {
       vect.back() += c;
     }
@@ -14,8 +14,8 @@ std::vector<std::string> split(std::string str) {
   return vect;
 }
 
-std::string concatenate(std::vector<std::string> strs) {
-  std::string tmp = "";
+std::string concatenate(const std::vector<std::string>& strs) {
+  std::string tmp;
   for (const auto &c : strs) {
     tmp += c;
     tmp += " ";

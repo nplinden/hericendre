@@ -20,13 +20,14 @@ public:
    *
    * \param chain: The chain to deplete with.
    * \param ccMap: A vector of initial concentration. Length of the vector
-   * should match the length of the chain's nuclides attribute. \param dt: The
-   * length of the time step in seconds. \param cutoff: Value under which a
+   * should match the length of the chain's nuclides attribute.
+   * \param times: The length of the time step in seconds.
+   * \param cutoff: Value under which a
    * concentration should be rounded to zero. default = 0.
    */
   std::vector<Eigen::VectorXd> run(const Chain &chain,
-                                   std::map<std::string, double> ccMap,
-                                   std::vector<double> times,
+                                   const std::map<std::string, double>& ccMap,
+                                   const std::vector<double> &times,
                                    double cutoff = 1.e-10);
 
   /**
@@ -36,11 +37,11 @@ public:
    * \param chain: The chain to deplete with.
    * \param ccVector: A map of initial concentration in the ccMap["nuclide"] =
    * concentration format
-   * \param dt: The length of the time step in seconds.
+   * \param times: The length of the time step in seconds.
    * \param cutoff: Value under which a concentration should be rounded to zero.
    * default = 0.
    */
-  std::vector<Eigen::VectorXd> run(const Chain &chain, Eigen::VectorXd ccVector,
+  std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd &ccVector,
                                    std::vector<double> times,
                                    double cutoff = 1.e-10);
 
@@ -53,12 +54,13 @@ private:
    *
    * \param chain: The chain to deplete with.
    * \param ccVector: A vector of initial concentration. Length of the vector
-   * should match the length of the chain's nuclides attribute. \param dt: The
-   * length of the time step in seconds. \param cutoff: Value under which a
+   * should match the length of the chain's nuclides attribute.
+   * \param dt: The length of the time step in seconds.
+   * \param cutoff: Value under which a
    * concentration should be rounded to zero. default = 0.
    */
-  std::vector<Eigen::VectorXd> run(const Chain &chain, Eigen::VectorXd ccVector,
-                                   double dt, double cutoff = 1.e-10);
+  std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd& ccVector,
+                                   double dt, double cutoff = 1.e-10) const;
 
   /**
    * \brief theta_i tabulated values for CRAM-48

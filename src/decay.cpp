@@ -1,7 +1,7 @@
 #include "decay.h"
 #include "nuclide.h"
 
-Decay::Decay(const pugi::xml_node &decayNode, NuclidePtr parent) {
+Decay::Decay(const pugi::xml_node &decayNode, const NuclidePtr& parent) {
   parentName_ = parent->name_;
   parent_ = parent;
 
@@ -18,17 +18,17 @@ Decay::Decay(const pugi::xml_node &decayNode, NuclidePtr parent) {
     hasTarget_ = false;
   }
 
-  std::string br = decayNode.attribute("branching_ratio").value();
-  if (!br.empty())
+  if (const std::string br = decayNode.attribute("branching_ratio").value(); !br.empty())
     branchingRatio_ = stod(br);
   else
     branchingRatio_ = 1.;
 };
 
-Decay::Decay(std::string type, std::string targetName, double branchingRatio,
-             NuclidePtr parent) {
+Decay::Decay(const std::string& type, const std::string& targetName, const double& branchingRatio,
+             const NuclidePtr& parent) {
   this->type_ = type;
   this->targetName_ = targetName;
+  this->hasTarget_ = true;
   this->branchingRatio_ = branchingRatio;
   this->parentName_ = parent->name_;
   this->parent_ = parent;

@@ -2,3 +2,5 @@ build/
 data/
 .cache/
 *json
+.idea/
+cmake-build-*/

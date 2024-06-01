@@ -16,19 +16,19 @@ using SourcePtr = std::shared_ptr<Source>;
 class Nuclide {
 public:
   // CONSTRUCTORS
-  Nuclide(std::string name, double dconst);
+  Nuclide(const std::string &name, double dconst);
 
   /**
    * \brief Creates a Nuclide object using an nuclide-tagged xml node.
    *
    */
-  Nuclide(const pugi::xml_node &nuclideNode);
+  explicit Nuclide(const pugi::xml_node &nuclideNode);
 
   // Members functions
   /**
    * \brief Add a nuclide node to an xml chain file.
    *
-   * \param The parent node to add to.
+   * \param rootnode: The parent node to add to.
    */
   void addNode(pugi::xml_node &rootnode);
 
@@ -40,7 +40,7 @@ public:
   /**
    * \brief Return the Nuclide object in string form.
    */
-  std::string str();
+  std::string str() const;
 
   /**
    * \brief A static member function that return the the (z, a, m) tuple
@@ -48,7 +48,7 @@ public:
    *
    * \param std::string name: a nuclide name.
    */
-  static std::tuple<int, int, int> getZam(std::string name);
+  static std::tuple<int, int, int> getZam(const std::string& name);
 
   // MEMBER VARIABLES
   /**
@@ -80,23 +80,28 @@ public:
    * \brief The decay constant of the nuclide.
    */
   double dconst_;
+  double getDconst() const { return dconst_; };
+  void setDconst(const double dconst) { dconst_ = dconst; };
 
   /**
    * \brief The decay energy of the nuclide.
    */
   double denergy_;
+  double getDenergy() const { return denergy_; };
 
   /**
    * \brief The name of the nuclide.
    */
   std::string name_;
+  std::string getName() const { return name_; };
+  void setName(const std::string &name) { name_ = name; };
 
   // std::string nfyParent_ = "";
 
   /**
    * \brief The index of the isotope in a Chain object.
    */
-  int idInChain;
+  size_t idInChain;
 
   /**
    * \brief The number of reaction types that the nuclide can undergo.
