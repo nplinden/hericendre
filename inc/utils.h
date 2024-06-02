@@ -9,7 +9,7 @@
  *
  * \param str
  */
-std::vector<std::string> split(const std::string& str);
+std::vector<std::string> split(const std::string &str);
 
 /**
  * \brief Concatenate a vector of strings in a single string,
@@ -17,7 +17,7 @@ std::vector<std::string> split(const std::string& str);
  *
  * \param strs: A vector of strings
  */
-std::string concatenate(const std::vector<std::string>& strs);
+std::string concatenate(const std::vector<std::string> &strs);
 
 /**
  * \brief Format a double using fmt, if the double has an integer
@@ -27,14 +27,14 @@ std::string concatenate(const std::vector<std::string>& strs);
  */
 std::string fmtDouble(double d);
 
-template <typename K, typename V>
-V atWithDefault(const std::map<K, V>& m, const K& k, const V& deflt){
- if (m.find(k) != m.end()) {
-  return m.at(k) ;
- }
- return  deflt ;
-  // if (m.contains(k)) return m.at(k) ;
-  // return deflt;
+template<typename K, typename V>
+V atWithDefault(const std::map<K, V> &m, const K &k, const V &deflt) {
+    if (m.find(k) != m.end()) {
+        return m.at(k);
+    }
+    return deflt;
+    // if (m.contains(k)) return m.at(k) ;
+    // return deflt;
 };
 
 #endif

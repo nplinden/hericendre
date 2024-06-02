@@ -1,14 +1,14 @@
 #include "pugixml.hpp"
-#include "input.h"
+#include "model.h"
 #include <fmt/core.h>
 
 int main(int argc, char *argv[]) {
-  (void)argc;
+    (void) argc;
 
-  std::string inputpath(argv[1]);
-  fmt::print("Running {:s}...\n", inputpath);
-  Model myinput(inputpath);
-  myinput.run();
+    std::string inputpath(argv[1]);
+    fmt::print("Running {:s}...\n", inputpath);
+    Model myinput(inputpath);
+    myinput.run();
 
-  return 0;
+    return 0;
 }
