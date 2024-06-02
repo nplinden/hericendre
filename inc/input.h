@@ -16,6 +16,7 @@ public:
   std::string inputpath_;
   std::string solver_ ;
   std::string chainpath_;
+  std::string result_path_ ;
   std::vector<double> times_;
   std::map<std::string, double> concentrations_;
   //

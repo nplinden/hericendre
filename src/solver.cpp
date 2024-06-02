@@ -61,12 +61,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
   for (const auto &nuclide : chain.nuclides_) {
     nuclides.push_back(nuclide->name_);
   }
-  std::vector<double> times_with_zero;
-  times_with_zero.push_back(0.);
-  for (const auto &t : times) {
-    times_with_zero.push_back(t);
-  }
-  results_ = Results(concentrations, nuclides, times_with_zero);
+  results_ = Results(concentrations, nuclides, times);
   return concentrations;
 }
 

@@ -30,3 +30,9 @@ std::string fmtDouble(double d) {
     s += ".0";
   return s;
 }
+
+// template <typename K, typename V>
+// V atWithDefault(const std::map<K, V>& m, const K& k, const V& deflt){
+//   if (m.contains(k)) return m.at(k) ;
+//   return deflt;
+// }

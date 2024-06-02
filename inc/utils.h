@@ -2,6 +2,7 @@
 #define UTILS_HPP_INCLUDE
 #include <string>
 #include <vector>
+#include <map>
 
 /**
  * \brief Split a character string along spaces.
@@ -25,5 +26,15 @@ std::string concatenate(const std::vector<std::string>& strs);
  *\param d: A double.
  */
 std::string fmtDouble(double d);
+
+template <typename K, typename V>
+V atWithDefault(const std::map<K, V>& m, const K& k, const V& deflt){
+ if (m.find(k) != m.end()) {
+  return m.at(k) ;
+ }
+ return  deflt ;
+  // if (m.contains(k)) return m.at(k) ;
+  // return deflt;
+};
 
 #endif

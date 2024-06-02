@@ -7,11 +7,13 @@
 #include "yaml-cpp/yaml.h"
 #include <fmt/ranges.h>
 #include <algorithm>
+#include <decaysolver.h>
 
 Input::Input(const std::string &inputpath) {
   YAML::Node input = YAML::LoadFile(inputpath);
-  chainpath_ = input["Solver"].as<std::string>();
+  solver_ = input["Solver"].as<std::string>();
   chainpath_ = input["Chain"].as<std::string>();
+  result_path_ = input["Results"].as<std::string>();
   const auto timemode = input["TimeMode"].as<std::string>();
   readTimes(input, timemode);
 
@@ -93,9 +95,18 @@ std::vector<double> Input::linspace(const std::vector<std::string>& splat) const
 
 
 void Input::run() const {
-  const Chain chain(chainpath_.c_str());
-  Solver solver;
-  solver.run(chain, concentrations_, times_);
-  auto results = solver.results_;
-  results.to_csv("results.csv");
+  Chain chain(chainpath_.c_str());
+  if (solver_ == "Decay") {
+    DecaySolver solver ;
+    solver.run(chain, concentrations_, times_);
+    auto results = solver.results_;
+    results.to_csv(result_path_);
+  } else if (solver_ == "CRAM48") {
+    Solver solver;
+    solver.run(chain, concentrations_, times_);
+    auto results = solver.results_;
+    results.to_csv(result_path_);
+  } else {
+    throw std::runtime_error(fmt::format("Invalid solver '{}'", solver_)) ;
+  }
 }
