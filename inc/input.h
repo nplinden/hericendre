@@ -4,18 +4,22 @@
 #include <string>
 #include <vector>
 #include "yaml-cpp/yaml.h"
+#include "chain.h"
 
-class Input {
+class Model {
 public:
   // CONSTRUCTORS
-  explicit Input(const std::string &inputpath);
+  explicit Model(const std::string &inputpath);
 
-  void run() const;
-  void readTimes(const YAML::Node& input, const std::string& timemode);
+  void readTimes(const YAML::Node& input);
+  void readCc(const YAML::Node& input);
+  void readSolverType(const YAML::Node& input);
+  void run();
 
   std::string inputpath_;
-  std::string solver_ ;
+  std::string solvertype_ ;
   std::string chainpath_;
+  Chain chain_ ;
   std::string result_path_ ;
   std::vector<double> times_;
   std::map<std::string, double> concentrations_;

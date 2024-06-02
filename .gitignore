@@ -1,6 +1,6 @@
 build/
 data/
 .cache/
-*json
-.idea/
+compile_commands.json
 cmake-build-*/
+.idea

@@ -2,7 +2,6 @@
 #include <Eigen/Sparse>
 #include <cmath>
 #include <fmt/format.h>
-#include <fmt/ranges.h>
 #include "utils.h"
 
 using msd = std::map<size_t, double> ;
@@ -18,13 +17,9 @@ void DecaySolver::compute_coeffs(Chain &chain,
 
   for (size_t inuc = 0; inuc < chain.nuclides_.size(); inuc++) {
     const auto nuclide = chain.nuclides_[inuc];
-    // fmt::print("i={} {}\n", inuc, nuclide->name_);
-    // fmt::print("\tλ={}\n", nuclide->dconst_);
     double Cii = nuclide->dconst_;
-    // fmt::print(" Cii={}\n", Cii);
 
-    // UNSTABLE NUCLIDE CASE
-    if (Cii != 0.) {
+    if (Cii != 0.) { // UNSTABLE NUCLIDE CASE
       // COMPUTING Ns(i)
       for (const auto &decay : nuclide->decaysUp_) {
         const double br = decay->branchingRatio_;
@@ -32,7 +27,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
         const double Cik = br * dconst;
         Ns[nuclide->idInChain] += Cik * Ns[decay->parent_->idInChain] / Cii;
       }
-      // fmt::print("\tNs({})={}\n", nuclide->name_, Ns[nuclide->idInChain]);
 
       // COMPUTING Fik
       for (size_t knuc = 0; knuc < inuc; knuc++) {
@@ -48,9 +42,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
               F[inuc][knuc] += val;
           }
         }
-        // if (F[inuc][knuc] != 0)
-        // fmt::print("\tF[{}][{}]={}\n", nuclide->name_,
-        // chain.nuclides_[knuc]->name_, F[inuc][knuc]);
       }
 
       // COMPUTING Fii
@@ -62,10 +53,7 @@ void DecaySolver::compute_coeffs(Chain &chain,
         if (jval != 0.)
           F[inuc][inuc] -= jval;
       }
-      // fmt::print("\tF[{}][{}]={}\n", nuclide->name_, nuclide->name_,
-      // F[inuc][inuc]);
-      // STABLE NUCLIDE CASE
-    } else {
+    } else { // STABLE NUCLIDE CASE
       // COMPUTING Fii
       for (const auto &decay : nuclide->decaysUp_) {
         size_t jnuc = decay->parent_->idInChain;
@@ -90,9 +78,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
               F[inuc][knuc] += Cij * kval * factor;
           }
         }
-        // if (F[inuc][knuc] != 0)
-        // fmt::print("\tF[{}][{}]={}\n", nuclide->name_,
-        //            chain.nuclides_[knuc]->name_, F[inuc][knuc]);
       }
 
       // COMPUTING Ns(i)
@@ -103,7 +88,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
         if (kval != 0.)
           Ns[inuc] -= kval;
       }
-      // fmt::print("\tNs({})={}\n", nuclide->name_, Ns[nuclide->idInChain]);
     }
   }
 }
@@ -111,7 +95,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
 std::vector<std::vector<double>>
 DecaySolver::run(Chain &chain, const std::map<std::string, double>& ccMap,
                  std::vector<double> times) {
-  fmt::print("{}\n", fmt::join(times, ", ")) ;
   const size_t nt = times.size();
   const size_t nn = chain.nuclides_.size();
   this->compute_coeffs(chain, ccMap);
@@ -136,11 +119,6 @@ DecaySolver::run(Chain &chain, const std::map<std::string, double>& ccMap,
     }
   }
 
-  // std::vector<double> times_with_zero;
-  // times_with_zero.push_back(0.);
-  // for (const auto &t : times) {
-  //   times_with_zero.push_back(t);
-  // }
   std::vector<std::string> nuclidenames;
   for (const auto &nuclide : chain.nuclides_)
     nuclidenames.push_back(nuclide->name_);
