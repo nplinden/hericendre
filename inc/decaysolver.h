@@ -16,7 +16,6 @@ public:
                                           std::vector<double> times);
 
     std::map<size_t, double> Ns;
-    // std::vector<std::pair<size_t, double>> Ns;
     std::map<size_t, std::map<size_t, double> > F;
     Results results_;
 };

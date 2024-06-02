@@ -2,13 +2,12 @@
 #include <Eigen/SparseLU>
 #include <fmt/core.h>
 #include <fmt/os.h>
-#include <solver.h>
+#include <cramsolver.h>
 
-Solver::Solver() = default;
+CRAMSolver::CRAMSolver() = default;
 
-std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
-                                         const Eigen::VectorXd &ccVector, const double dt,
-                                         const double cutoff) const {
+std::vector<Eigen::VectorXd> CRAMSolver::run(const Chain &chain,
+                                             const Eigen::VectorXd &ccVector, const double dt) const {
     const size_t n_nuclides = chain.nuclides_.size();
     const SpComplex M = chain.decayMatrix().cast<cdouble>();
 
@@ -35,17 +34,16 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
     Eigen::VectorX<double> realN = alpha48_0 * N.real();
 
     for (double &i: realN) {
-        if (i < cutoff)
+        if (i < cutoff_)
             i = 0.;
     }
 
     return std::vector<Eigen::VectorXd>({ccVector, realN});
 }
 
-std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
-                                         const Eigen::VectorXd &ccVector,
-                                         std::vector<double> times,
-                                         const double cutoff) {
+std::vector<Eigen::VectorXd> CRAMSolver::run(const Chain &chain,
+                                             const Eigen::VectorXd &ccVector,
+                                             std::vector<double> times) {
     std::vector<Eigen::VectorXd> concentrations;
     Eigen::VectorXd N(ccVector);
 
@@ -53,7 +51,7 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
     for (size_t it = 1; it < times.size(); it++) {
         const double dt = times[it] - times[it - 1];
         fmt::print("{:.4e} -> {:.4e}\n", times[it - 1], times[it]);
-        N = run(chain, N, dt, cutoff).back();
+        N = run(chain, N, dt).back();
         concentrations.push_back(N);
     }
 
@@ -65,10 +63,9 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
     return concentrations;
 }
 
-std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
-                                         const std::map<std::string, double> &ccMap,
-                                         const std::vector<double> &times,
-                                         const double cutoff) {
+std::vector<Eigen::VectorXd> CRAMSolver::run(const Chain &chain,
+                                             const std::map<std::string, double> &ccMap,
+                                             const std::vector<double> &times) {
     Eigen::VectorXd N(chain.nuclides_.size());
     for (size_t i = 0; i < chain.nuclides_.size(); i++)
         N(i) = 0.;
@@ -78,5 +75,5 @@ std::vector<Eigen::VectorXd> Solver::run(const Chain &chain,
         N(inuc) = val;
     }
 
-    return run(chain, N, times, cutoff);
+    return run(chain, N, times);
 }
