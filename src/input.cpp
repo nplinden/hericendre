@@ -11,21 +11,55 @@
 
 Input::Input(const std::string &inputpath) {
   YAML::Node input = YAML::LoadFile(inputpath);
-  solver_ = input["Solver"].as<std::string>();
   chainpath_ = input["Chain"].as<std::string>();
+  chain_ = Chain(chainpath_.c_str());
   result_path_ = input["Results"].as<std::string>();
-  const auto timemode = input["TimeMode"].as<std::string>();
-  readTimes(input, timemode);
 
-  const std::vector<std::string> cc =
-      split(input["Concentrations"].as<std::string>());
+  readSolverType(input);
+  readTimes(input);
+  readCc(input);
 
-  for (size_t i = 0; i < cc.size(); i += 2) {
-    concentrations_[cc[i]] = stod(cc[i + 1]);
+}
+
+void Input::readSolverType(const YAML::Node& input) {
+  if (const auto modenode = input["Solver"]; !modenode) {
+    solvertype_ = "CRAM48";
+  } else {
+    switch (auto solvertype = modenode.as<std::string>) {
+      case "CRAM48":
+        solvertype_ = "CRAM48";
+        break;
+      case "Decay":
+        solvertype_ = "Decay";
+        break;
+      default:
+        throw std::runtime_error(fmt::format("Invalid solver type '{}'", solvertype));
+    }
   }
 }
 
-void Input::readTimes(const YAML::Node& input, const std::string& timemode) {
+void Input::readCc(const YAML::Node& input) {
+  std::string ccmode = "Explicit" ;
+  if (const auto mode = input["ConcentrationMode"]) ccmode = mode.as<std::string>();
+  switch (ccmode) {
+    case "Explicit":
+      const std::vector<std::string> cc = split(input["Concentrations"].as<std::string>());
+      for (size_t i = 0; i < cc.size(); i += 2)
+        concentrations_[cc[i]] = stod(cc[i + 1]);
+      break ;
+    case "Uniform":
+      const double val = stod(input["Concentrations"].as<std::string>()) ;
+      for (const auto& nuclide: chain_.nuclides_)
+        concentrations_[nuclide->name_] = val ;
+      break ;
+    default:
+      throw std::runtime_error(fmt::format("Invalid ConcentrationMode '{}'", ccmode));
+  }
+}
+
+void Input::readTimes(const YAML::Node& input) {
+  const auto timemode = input["TimeMode"].as<std::string>() ;
+
   const std::vector<std::string> raw_times = split(input["Time"].as<std::string>());
   std::vector<std::vector<std::string>> lines;
   lines.emplace_back();
@@ -93,20 +127,18 @@ std::vector<double> Input::linspace(const std::vector<std::string>& splat) const
   return values;
 }
 
-
-void Input::run() const {
-  Chain chain(chainpath_.c_str());
-  if (solver_ == "Decay") {
+void Input::run() {
+  if (solvertype_ == "Decay") {
     DecaySolver solver ;
-    solver.run(chain, concentrations_, times_);
+    solver.run(chain_, concentrations_, times_);
     auto results = solver.results_;
     results.to_csv(result_path_);
-  } else if (solver_ == "CRAM48") {
+  } else if (solvertype_ == "CRAM48") {
     Solver solver;
-    solver.run(chain, concentrations_, times_);
+    solver.run(chain_, concentrations_, times_);
     auto results = solver.results_;
     results.to_csv(result_path_);
   } else {
-    throw std::runtime_error(fmt::format("Invalid solver '{}'", solver_)) ;
+    throw std::runtime_error(fmt::format("Invalid solver '{}'", solvertype_)) ;
   }
 }
