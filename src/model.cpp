@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <decaysolver.h>
 
-Input::Input(const std::string &inputpath) {
+Model::Model(const std::string &inputpath) {
   YAML::Node input = YAML::LoadFile(inputpath);
   chainpath_ = input["Chain"].as<std::string>();
   chain_ = Chain(chainpath_.c_str());
@@ -21,43 +21,38 @@ Input::Input(const std::string &inputpath) {
 
 }
 
-void Input::readSolverType(const YAML::Node& input) {
+void Model::readSolverType(const YAML::Node& input) {
   if (const auto modenode = input["Solver"]; !modenode) {
     solvertype_ = "CRAM48";
   } else {
-    switch (auto solvertype = modenode.as<std::string>) {
-      case "CRAM48":
+    auto solvertype = modenode.as<std::string>();
+    if (solvertype == "CRAM48") {
         solvertype_ = "CRAM48";
-        break;
-      case "Decay":
+    } else if ( solvertype == "Decay") {
         solvertype_ = "Decay";
-        break;
-      default:
+    } else {
         throw std::runtime_error(fmt::format("Invalid solver type '{}'", solvertype));
     }
   }
 }
 
-void Input::readCc(const YAML::Node& input) {
+void Model::readCc(const YAML::Node& input) {
   std::string ccmode = "Explicit" ;
   if (const auto mode = input["ConcentrationMode"]) ccmode = mode.as<std::string>();
-  switch (ccmode) {
-    case "Explicit":
+  if (ccmode == "Explicit") {
       const std::vector<std::string> cc = split(input["Concentrations"].as<std::string>());
       for (size_t i = 0; i < cc.size(); i += 2)
         concentrations_[cc[i]] = stod(cc[i + 1]);
-      break ;
-    case "Uniform":
+  } else if (ccmode == "Uniform") {
       const double val = stod(input["Concentrations"].as<std::string>()) ;
       for (const auto& nuclide: chain_.nuclides_)
         concentrations_[nuclide->name_] = val ;
-      break ;
-    default:
+  } else {
       throw std::runtime_error(fmt::format("Invalid ConcentrationMode '{}'", ccmode));
   }
 }
 
-void Input::readTimes(const YAML::Node& input) {
+void Model::readTimes(const YAML::Node& input) {
   const auto timemode = input["TimeMode"].as<std::string>() ;
 
   const std::vector<std::string> raw_times = split(input["Time"].as<std::string>());
@@ -98,7 +93,7 @@ void Input::readTimes(const YAML::Node& input) {
 
 }
 
-std::vector<double> Input::linspace(const std::vector<std::string>& splat) const {
+std::vector<double> Model::linspace(const std::vector<std::string>& splat) const {
   const double start = stod(splat[1]);
   const double stop = stod(splat[2]);
   const int nstep = stoi(splat[3]);
@@ -112,7 +107,7 @@ std::vector<double> Input::linspace(const std::vector<std::string>& splat) const
   return values;
 }
 
- std::vector<double> Input::logspace(const std::vector<std::string>& splat) const {
+ std::vector<double> Model::logspace(const std::vector<std::string>& splat) const {
   const double start = std::log10(stod(splat[1]));
   const double stop = std::log10(stod(splat[2]));
   const int nstep = stoi(splat[3]);
@@ -127,7 +122,7 @@ std::vector<double> Input::linspace(const std::vector<std::string>& splat) const
   return values;
 }
 
-void Input::run() {
+void Model::run() {
   if (solvertype_ == "Decay") {
     DecaySolver solver ;
     solver.run(chain_, concentrations_, times_);

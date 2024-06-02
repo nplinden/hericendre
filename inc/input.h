@@ -6,10 +6,10 @@
 #include "yaml-cpp/yaml.h"
 #include "chain.h"
 
-class Input {
+class Model {
 public:
   // CONSTRUCTORS
-  explicit Input(const std::string &inputpath);
+  explicit Model(const std::string &inputpath);
 
   void readTimes(const YAML::Node& input);
   void readCc(const YAML::Node& input);

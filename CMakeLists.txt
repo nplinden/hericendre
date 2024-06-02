@@ -9,7 +9,7 @@ set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
                            src/fission.cpp
                            src/utils.cpp
                            src/results.cpp
-                           src/input.cpp
+                           src/model.cpp
                            src/decaysolver.cpp)
 
 if(NOT CMAKE_BUILD_TYPE)

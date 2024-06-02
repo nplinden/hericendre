@@ -95,7 +95,6 @@ void DecaySolver::compute_coeffs(Chain &chain,
 std::vector<std::vector<double>>
 DecaySolver::run(Chain &chain, const std::map<std::string, double>& ccMap,
                  std::vector<double> times) {
-  fmt::print("{}\n", fmt::join(times, ", ")) ;
   const size_t nt = times.size();
   const size_t nn = chain.nuclides_.size();
   this->compute_coeffs(chain, ccMap);
@@ -120,11 +119,6 @@ DecaySolver::run(Chain &chain, const std::map<std::string, double>& ccMap,
     }
   }
 
-  // std::vector<double> times_with_zero;
-  // times_with_zero.push_back(0.);
-  // for (const auto &t : times) {
-  //   times_with_zero.push_back(t);
-  // }
   std::vector<std::string> nuclidenames;
   for (const auto &nuclide : chain.nuclides_)
     nuclidenames.push_back(nuclide->name_);
