@@ -11,9 +11,9 @@ using cdouble = std::complex<double>;
 using SpComplex = Eigen::SparseMatrix<cdouble>;
 using TrComplex = Eigen::Triplet<cdouble>;
 
-class Solver {
+class CRAMSolver {
 public:
- Solver();
+ CRAMSolver();
 
  /**
   * \brief Solve the Bateman equation for all provided times in
@@ -23,13 +23,11 @@ public:
   * \param ccMap: A vector of initial concentration. Length of the vector
   * should match the length of the chain's nuclides attribute.
   * \param times: The length of the time step in seconds.
-  * \param cutoff: Value under which a
   * concentration should be rounded to zero. default = 0.
   */
  std::vector<Eigen::VectorXd> run(const Chain &chain,
                                   const std::map<std::string, double> &ccMap,
-                                  const std::vector<double> &times,
-                                  double cutoff = 1.e-10);
+                                  const std::vector<double> &times);
 
  /**
   * \brief Solve the Bateman equation for all provided times in
@@ -39,13 +37,15 @@ public:
   * \param ccVector: A map of initial concentration in the ccMap["nuclide"] =
   * concentration format
   * \param times: The length of the time step in seconds.
-  * \param cutoff: Value under which a concentration should be rounded to zero.
-  * default = 0.
   */
  std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd &ccVector,
-                                  std::vector<double> times,
-                                  double cutoff = 1.e-10);
+                                  std::vector<double> times);
 
+ /**
+  * \brief Cutoff value under which a concentration should be rounded to zero.
+  *
+  */
+ double cutoff_ = 1.e-10;
  Results results_;
 
 private:
@@ -57,11 +57,9 @@ private:
   * \param ccVector: A vector of initial concentration. Length of the vector
   * should match the length of the chain's nuclides attribute.
   * \param dt: The length of the time step in seconds.
-  * \param cutoff: Value under which a
-  * concentration should be rounded to zero. default = 0.
   */
  std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd &ccVector,
-                                  double dt, double cutoff = 1.e-10) const;
+                                  double dt) const;
 
  /**
   * \brief theta_i tabulated values for CRAM-48

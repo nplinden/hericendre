@@ -1,7 +1,7 @@
 #include "model.h"
 #include "chain.h"
 #include "results.h"
-#include "solver.h"
+#include "cramsolver.h"
 #include "utils.h"
 #include <cmath>
 #include "yaml-cpp/yaml.h"
@@ -127,7 +127,7 @@ void Model::run() {
         auto results = solver.results_;
         results.to_csv(result_path_);
     } else if (solvertype_ == "CRAM48") {
-        Solver solver;
+        CRAMSolver solver;
         solver.run(chain_, concentrations_, times_);
         auto results = solver.results_;
         results.to_csv(result_path_);
