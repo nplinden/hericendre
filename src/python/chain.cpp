@@ -5,7 +5,7 @@
 namespace py = pybind11;
 
 void init_Chain(py::module &m) {
-  m.doc() = "Chain class";
+    m.doc() = "Chain class";
 
-  py::class_<Chain>(m, "Chain").def(py::init<std::string>());
+    py::class_<Chain>(m, "Chain").def(py::init<std::string>());
 }
