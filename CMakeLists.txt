@@ -10,7 +10,8 @@ set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
         src/utils.cpp
         src/results.cpp
         src/model.cpp
-        src/decaysolver.cpp)
+        src/decaysolver.cpp
+)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -36,6 +37,6 @@ target_link_libraries(${TARGET}Exe Hericendre)
 set_property(TARGET ${TARGET}Exe PROPERTY OUTPUT_NAME ${TARGET})
 
 add_subdirectory(vendor/pybind11)
-pybind11_add_module(pyHericendre src/python/pyHericendre.cpp src/python/nuclide.cpp src/python/chain.cpp)
+pybind11_add_module(pyHericendre src/python/pyHericendre.cpp src/python/nuclide.cpp src/python/chain.cpp src/python/model.cpp)
 target_link_libraries(pyHericendre PRIVATE Hericendre)
 set_property(TARGET pyHericendre PROPERTY OUTPUT_NAME hericendre)

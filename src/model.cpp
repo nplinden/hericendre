@@ -20,6 +20,7 @@ Model::Model(const std::string &inputpath) {
     readCc(input);
 }
 
+
 void Model::readSolverType(const YAML::Node &input) {
     if (const auto modenode = input["Solver"]; !modenode) {
         solvertype_ = "CRAM48";
@@ -134,4 +135,25 @@ void Model::run() {
     } else {
         throw std::runtime_error(fmt::format("Invalid solver '{}'", solvertype_));
     }
+}
+
+std::string Model::chainpath() const {
+    return chainpath_;
+}
+
+void Model::set_chainpath(const std::string &chainpath) {
+    chainpath_ = chainpath;
+    chain_ = Chain(chainpath_.c_str());
+}
+
+std::vector<double> Model::times() const {
+    return times_;
+}
+
+void Model::set_times(const std::vector<double> &times) {
+    times_ = times;
+}
+
+std::string Model::inputpath() const {
+    return inputpath_;
 }
