@@ -11,21 +11,20 @@ public:
     // CONSTRUCTORS
     explicit Model(const std::string &inputpath);
 
-    void run();
+    explicit Model();
 
-    std::string solvertype_;
-    std::string result_path_;
-    std::map<std::string, double> concentrations_;
+    void run();
 
     std::string chainpath() const;
 
     void set_chainpath(const std::string &chainpath);
 
-    std::vector<double> times() const;
-
-    void set_times(const std::vector<double> &times);
-
     std::string inputpath() const;
+
+    std::map<std::string, double> initcc_;
+    std::string resultpath_;
+    std::string solvertype_;
+    std::vector<double> times_;
 
 private:
     void readTimes(const YAML::Node &input);
@@ -39,11 +38,12 @@ private:
     std::vector<double> logspace(const std::vector<std::string> &splat) const;
 
     std::string chainpath_;
+
     Chain chain_;
 
-    std::vector<double> times_;
 
     std::string inputpath_;
+
 
     const std::map<std::string, double> time_units = {
         {"s", 1.},

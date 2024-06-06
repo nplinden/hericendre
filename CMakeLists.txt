@@ -37,6 +37,10 @@ target_link_libraries(${TARGET}Exe Hericendre)
 set_property(TARGET ${TARGET}Exe PROPERTY OUTPUT_NAME ${TARGET})
 
 add_subdirectory(vendor/pybind11)
-pybind11_add_module(pyHericendre src/python/pyHericendre.cpp src/python/nuclide.cpp src/python/chain.cpp src/python/model.cpp)
+pybind11_add_module(pyHericendre
+        src/python/pyHericendre.cpp
+        src/python/nuclide.cpp
+        src/python/chain.cpp
+        src/python/model.cpp)
 target_link_libraries(pyHericendre PRIVATE Hericendre)
 set_property(TARGET pyHericendre PROPERTY OUTPUT_NAME hericendre)

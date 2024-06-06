@@ -13,12 +13,14 @@ Model::Model(const std::string &inputpath) {
     YAML::Node input = YAML::LoadFile(inputpath);
     chainpath_ = input["Chain"].as<std::string>();
     chain_ = Chain(chainpath_.c_str());
-    result_path_ = input["Results"].as<std::string>();
+    resultpath_ = input["Results"].as<std::string>();
 
     readSolverType(input);
     readTimes(input);
     readCc(input);
 }
+
+Model::Model() = default;
 
 
 void Model::readSolverType(const YAML::Node &input) {
@@ -42,11 +44,11 @@ void Model::readCc(const YAML::Node &input) {
     if (ccmode == "Explicit") {
         const std::vector<std::string> cc = split(input["Concentrations"].as<std::string>());
         for (size_t i = 0; i < cc.size(); i += 2)
-            concentrations_[cc[i]] = stod(cc[i + 1]);
+            initcc_[cc[i]] = stod(cc[i + 1]);
     } else if (ccmode == "Uniform") {
         const double val = stod(input["Concentrations"].as<std::string>());
         for (const auto &nuclide: chain_.nuclides_)
-            concentrations_[nuclide->name_] = val;
+            initcc_[nuclide->name_] = val;
     } else {
         throw std::runtime_error(fmt::format("Invalid ConcentrationMode '{}'", ccmode));
     }
@@ -124,14 +126,14 @@ std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
 void Model::run() {
     if (solvertype_ == "Decay") {
         DecaySolver solver;
-        solver.run(chain_, concentrations_, times_);
+        solver.run(chain_, initcc_, times_);
         auto results = solver.results_;
-        results.to_csv(result_path_);
+        results.to_csv(resultpath_);
     } else if (solvertype_ == "CRAM48") {
         CRAMSolver solver;
-        solver.run(chain_, concentrations_, times_);
+        solver.run(chain_, initcc_, times_);
         auto results = solver.results_;
-        results.to_csv(result_path_);
+        results.to_csv(resultpath_);
     } else {
         throw std::runtime_error(fmt::format("Invalid solver '{}'", solvertype_));
     }
@@ -144,16 +146,4 @@ std::string Model::chainpath() const {
 void Model::set_chainpath(const std::string &chainpath) {
     chainpath_ = chainpath;
     chain_ = Chain(chainpath_.c_str());
-}
-
-std::vector<double> Model::times() const {
-    return times_;
-}
-
-void Model::set_times(const std::vector<double> &times) {
-    times_ = times;
-}
-
-std::string Model::inputpath() const {
-    return inputpath_;
 }
