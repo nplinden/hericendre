@@ -11,28 +11,39 @@ public:
     // CONSTRUCTORS
     explicit Model(const std::string &inputpath);
 
+    explicit Model();
+
+    void run();
+
+    std::string chainpath() const;
+
+    void set_chainpath(const std::string &chainpath);
+
+    std::string inputpath() const;
+
+    std::map<std::string, double> initcc_;
+    std::string resultpath_;
+    std::string solvertype_;
+    std::vector<double> times_;
+
+private:
     void readTimes(const YAML::Node &input);
 
     void readCc(const YAML::Node &input);
 
     void readSolverType(const YAML::Node &input);
 
-    void run();
-
-    std::string inputpath_;
-    std::string solvertype_;
-    std::string chainpath_;
-    Chain chain_;
-    std::string result_path_;
-    std::vector<double> times_;
-    std::map<std::string, double> concentrations_;
-    //
-    // void addNode(pugi::xml_node &rootnode);
     std::vector<double> linspace(const std::vector<std::string> &splat) const;
 
     std::vector<double> logspace(const std::vector<std::string> &splat) const;
 
-    std::vector<double> defaultline(const std::vector<std::string> &splat) const;
+    std::string chainpath_;
+
+    Chain chain_;
+
+
+    std::string inputpath_;
+
 
     const std::map<std::string, double> time_units = {
         {"s", 1.},
