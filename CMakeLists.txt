@@ -23,9 +23,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(vendor/eigen)
 add_subdirectory(vendor/fmt)
+add_subdirectory(vendor/pugixml)
+add_subdirectory(vendor/yaml-cpp)
 
-find_package(pugixml)
-find_package(yaml-cpp)
 include_directories(inc)
 
 add_library(${TARGET} SHARED ${HERICENDRE_SOURCE_LIST})
