@@ -44,3 +44,4 @@ pybind11_add_module(pyHericendre
         src/python/model.cpp)
 target_link_libraries(pyHericendre PRIVATE Hericendre)
 set_property(TARGET pyHericendre PROPERTY OUTPUT_NAME hericendre)
+set_property(TARGET HericendreExe PROPERTY OUTPUT_NAME hericendre)
