@@ -22,15 +22,19 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+find_package(HDF5 REQUIRED)
+set(EIGEN_BUILD_DOC OFF)
 add_subdirectory(vendor/eigen)
 add_subdirectory(vendor/fmt)
 add_subdirectory(vendor/pugixml)
 add_subdirectory(vendor/yaml-cpp)
+add_subdirectory(vendor/HighFive)
 
 include_directories(inc)
 
+option(EIGEN_BUILD_DOC "Enable creation of Eigen documentation" OFF)
 add_library(${TARGET} SHARED ${HERICENDRE_SOURCE_LIST})
-target_link_libraries(${TARGET} Eigen3::Eigen pugixml fmt yaml-cpp)
+target_link_libraries(${TARGET} Eigen3::Eigen pugixml fmt yaml-cpp HighFive)
 
 add_executable(${TARGET}Exe src/main.cpp)
 target_link_libraries(${TARGET}Exe Hericendre)
