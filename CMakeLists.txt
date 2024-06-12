@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(Hericendre VERSION 0.1)
+set(CMAKE_CXX_STANDARD 20)
 set(TARGET Hericendre)
 set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
         src/chain.cpp
