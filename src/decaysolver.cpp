@@ -10,6 +10,8 @@ DecaySolver::DecaySolver() = default;
 
 void DecaySolver::compute_coeffs(Chain &chain,
                                  std::map<std::string, double> ccMap) {
+  chain_ = chain;
+  ccMap_ = ccMap;
   if (!chain.topological_sort())
     throw std::invalid_argument("Chain cannot be topologically sorted");
   chain.tweak_dconst();
@@ -131,3 +133,13 @@ DecaySolver::run(Chain &chain, const std::map<std::string, double> &ccMap,
   results_ = Results(N, nuclidenames, times);
   return N;
 }
+
+void DecaySolver::to_hdf5(H5Easy::File &file) const {
+  for (auto const &[nuclide, ns]: this->Ns) {
+    if (ns != 0.) {
+      std::string h5path = fmt::format("/solver/Ns/{}", this->chain_.nuclides_[nuclide]->name_);
+      H5Easy::dump(file, h5path, std::vector<double>({ns}));
+    }
+  }
+}
+

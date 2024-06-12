@@ -1,6 +1,7 @@
 #include "pugixml.hpp"
 #include "model.h"
 #include <fmt/core.h>
+#include <highfive/highfive.hpp>
 
 int main(int argc, char *argv[]) {
     (void) argc;
@@ -10,5 +11,6 @@ int main(int argc, char *argv[]) {
     Model myinput(inputpath);
     myinput.run();
 
+    auto file = HighFive::File("foo.h5", HighFive::File::Create);
     return 0;
 }

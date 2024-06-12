@@ -8,6 +8,7 @@
 #include <fmt/ranges.h>
 #include <algorithm>
 #include <decaysolver.h>
+#include <highfive/H5Easy.hpp>
 
 Model::Model(const std::string &inputpath) {
     YAML::Node input = YAML::LoadFile(inputpath);
@@ -129,6 +130,9 @@ void Model::run() {
         solver.run(chain_, initcc_, times_);
         auto results = solver.results_;
         results.to_csv(resultpath_);
+        H5Easy::File file("results.h5", H5Easy::File::Overwrite);
+        results.to_hdf5(file);
+        solver.to_hdf5((file));
     } else if (solvertype_ == "CRAM48") {
         CRAMSolver solver;
         solver.run(chain_, initcc_, times_);
