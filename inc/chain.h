@@ -91,6 +91,9 @@ public:
   */
  std::vector<std::string> reachable(const std::string &nucname);
 
+ std::vector<std::string> name_vector() const;
+ std::vector<double> dconst_vector() const;
+
  /**
   * \brief Sort the chain in the topological order if possible.
   *

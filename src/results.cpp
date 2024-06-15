@@ -1,5 +1,6 @@
 #include "results.h"
 #include <fmt/os.h>
+#include <highfive/H5Easy.hpp>
 
 Results::Results() = default;
 
@@ -19,7 +20,7 @@ Results::Results(const std::vector<Eigen::VectorXd> &cc,
     times_ = times;
 };
 
-void Results::to_csv(const std::string &path, const bool ignore_zeros) {
+void Results::to_csv(const std::string &path, const bool ignore_zeros) const {
     auto out = fmt::output_file(path);
 
     // HEADER
@@ -42,3 +43,10 @@ void Results::to_csv(const std::string &path, const bool ignore_zeros) {
         }
     }
 };
+
+void Results::to_hdf5(H5Easy::File &file) const {
+    H5Easy::dump(file, "results/CONCENTRATIONS", this->cc_);
+    H5Easy::dump(file, "results/TIMES", this->times_);
+    H5Easy::dump(file, "results/NUCLIDES", this->nuclides_);
+}
+

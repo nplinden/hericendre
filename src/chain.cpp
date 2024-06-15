@@ -225,6 +225,7 @@ bool Chain::topological_sort() {
     std::vector<NuclidePtr> sorted;
     // Building the vector of incoming degrees
     std::vector<size_t> incoming_degrees;
+    incoming_degrees.reserve(this->nuclides_.size());
     for (const auto &nuclide: this->nuclides_) {
         incoming_degrees.push_back(nuclide->decaysUp_.size());
         // fmt::print("{:8} {}\n", nuclide->name_, nuclide->decaysUp_.size());
@@ -300,6 +301,22 @@ void Chain::dump_matrix(const std::string &path) const {
         out.print("\n");
     }
     out.close();
+}
+
+std::vector<std::string> Chain::name_vector() const {
+    std::vector<std::string> vec ;
+    vec.reserve(this->nuclides_.size());
+    for (const auto& nuclide: this->nuclides_)
+        vec.push_back(nuclide->name_);
+    return vec;
+}
+
+std::vector<double> Chain::dconst_vector() const {
+    std::vector<double> vec;
+    vec.reserve(this->nuclides_.size());
+    for (const auto& nuclide: this->nuclides_)
+        vec.push_back(nuclide->dconst_);
+    return vec;
 }
 
 // void Chain::removeNuclide(std::string nuc) {}

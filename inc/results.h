@@ -2,6 +2,7 @@
 #define RESULTS_HPP_INCLUDED
 #include <Eigen/Sparse>
 #include <vector>
+#include <highfive/H5Easy.hpp>
 
 class Results {
 public:
@@ -17,7 +18,9 @@ public:
     Results(const std::vector<Eigen::VectorXd> &cc, const std::vector<std::string> &nuclides,
             const std::vector<double> &times);
 
-    void to_csv(const std::string &path, bool ignore_zeros = true);
+    void to_csv(const std::string &path, bool ignore_zeros = true) const;
+
+    void to_hdf5(H5Easy::File &file) const;
 };
 
 #endif
