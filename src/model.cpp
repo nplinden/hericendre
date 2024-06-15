@@ -126,8 +126,8 @@ std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
 
 void Model::run() {
     if (solvertype_ == "Decay") {
-        DecaySolver solver;
-        solver.run(chain_, initcc_, times_);
+        DecaySolver solver(chain_);
+        solver.run(initcc_, times_);
         auto results = solver.results_;
         results.to_csv(resultpath_);
         H5Easy::File file("results.h5", H5Easy::File::Overwrite);

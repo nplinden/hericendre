@@ -6,19 +6,19 @@
 
 using msd = std::map<size_t, double>;
 
-DecaySolver::DecaySolver() = default;
+DecaySolver::DecaySolver(Chain& chain) {
+    chain_ = chain;
+};
 
-void DecaySolver::compute_coeffs(Chain &chain,
-                                 std::map<std::string, double> ccMap) {
-  chain_ = chain;
+void DecaySolver::compute_coeffs(std::map<std::string, double> ccMap) {
   ccMap_ = ccMap;
-  if (!chain.topological_sort())
+  if (!chain_.topological_sort())
     throw std::invalid_argument("Chain cannot be topologically sorted");
-  chain.tweak_dconst();
-  Eigen::SparseMatrix<double> matrix = chain.decayMatrix();
+  chain_.tweak_dconst();
+  Eigen::SparseMatrix<double> matrix = chain_.decayMatrix();
 
-  for (size_t inuc = 0; inuc < chain.nuclides_.size(); inuc++) {
-    const auto nuclide = chain.nuclides_[inuc];
+  for (size_t inuc = 0; inuc < chain_.nuclides_.size(); inuc++) {
+    const auto nuclide = chain_.nuclides_[inuc];
     double Cii = nuclide->dconst_;
 
     if (Cii != 0.) {
@@ -33,7 +33,7 @@ void DecaySolver::compute_coeffs(Chain &chain,
 
       // COMPUTING Fik
       for (size_t knuc = 0; knuc < inuc; knuc++) {
-        double Ckk = chain.nuclides_[knuc]->dconst_;
+        double Ckk = chain_.nuclides_[knuc]->dconst_;
         double factor = 1 / (Cii - Ckk);
         for (const auto &decay: nuclide->decaysUp_) {
           size_t jnuc = decay->parent_->idInChain;
@@ -68,7 +68,7 @@ void DecaySolver::compute_coeffs(Chain &chain,
 
       // COMPUTING Fik
       for (size_t knuc = 0; knuc < inuc; knuc++) {
-        double Ckk = chain.nuclides_[knuc]->dconst_;
+        double Ckk = chain_.nuclides_[knuc]->dconst_;
         if (Ckk == 0)
           continue;
         double factor = 1 / (Cii - Ckk);
@@ -97,14 +97,14 @@ void DecaySolver::compute_coeffs(Chain &chain,
 }
 
 std::vector<std::vector<double> >
-DecaySolver::run(Chain &chain, const std::map<std::string, double> &ccMap,
+DecaySolver::run(const std::map<std::string, double> &ccMap,
                  std::vector<double> times) {
   const size_t nt = times.size();
-  const size_t nn = chain.nuclides_.size();
-  this->compute_coeffs(chain, ccMap);
+  const size_t nn = chain_.nuclides_.size();
+  this->compute_coeffs(ccMap);
   std::vector<std::vector<double> > N(nt, std::vector<double>(nn, 0));
   for (auto const &[key, val]: ccMap) {
-    const size_t inuc = chain.nuclide_index(key);
+    const size_t inuc = chain_.nuclide_index(key);
     N[0][inuc] = val;
   }
 
@@ -114,17 +114,17 @@ DecaySolver::run(Chain &chain, const std::map<std::string, double> &ccMap,
       auto imap = atWithDefault(F, inuc, msd());
       N[it][inuc] += Ns[inuc];
       for (const auto &[jnuc, Fij]: imap) {
-        if (inuc == jnuc && chain.nuclides_[inuc]->dconst_ == 0)
+        if (inuc == jnuc && chain_.nuclides_[inuc]->dconst_ == 0)
           continue;
-        N[it][inuc] += Fij * std::exp(-chain.nuclides_[jnuc]->dconst_ * times[it]);
+        N[it][inuc] += Fij * std::exp(-chain_.nuclides_[jnuc]->dconst_ * times[it]);
       }
-      if (chain.nuclides_[inuc]->dconst_ == 0)
+      if (chain_.nuclides_[inuc]->dconst_ == 0)
         N[it][inuc] += atWithDefault(imap, inuc, 0.) * times[it];
     }
   }
 
   std::vector<std::string> nuclidenames;
-  for (const auto &nuclide: chain.nuclides_)
+  for (const auto &nuclide: chain_.nuclides_)
     nuclidenames.push_back(nuclide->name_);
   fmt::print("times.size()={}\n", times.size());
   fmt::print("nuclidenames.size()={}\n", nuclidenames.size());
@@ -135,11 +135,24 @@ DecaySolver::run(Chain &chain, const std::map<std::string, double> &ccMap,
 }
 
 void DecaySolver::to_hdf5(H5Easy::File &file) const {
-  for (auto const &[nuclide, ns]: this->Ns) {
-    if (ns != 0.) {
-      std::string h5path = fmt::format("/solver/Ns/{}", this->chain_.nuclides_[nuclide]->name_);
-      H5Easy::dump(file, h5path, std::vector<double>({ns}));
-    }
+  for (auto const& [i, dico]: this->F){
+      std::string inuc = this->chain_.nuclides_[i]->name_;
+      for (auto const& [j, val]: dico){
+          std::string jnuc = this->chain_.nuclides_[j]->name_;
+          std::string h5path = fmt::format("/solver/F/{}/{}", inuc, jnuc);
+          H5Easy::dump(file, h5path, std::vector<double>({val}));
+      }
   }
+  H5Easy::dump(file, "/solver/dconst", this->chain_.dconst_vector());
+  H5Easy::dump(file, "/solver/nuclides", this->chain_.name_vector());
+  H5Easy::dump(file, "/solver/Ns", this->Ns_vector());
+}
+
+std::vector<double> DecaySolver::Ns_vector() const {
+    std::vector<double> vec;
+    for (size_t i = 0; i < this->chain_.nuclides_.size(); i++){
+       vec.push_back(this->Ns.at(i));
+    }
+    return vec;
 }
 

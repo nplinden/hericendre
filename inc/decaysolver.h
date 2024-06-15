@@ -5,18 +5,20 @@
 #include <map>
 #include <string>
 #include <highfive/H5Easy.hpp>
+#include <highfive/highfive.hpp>
 
 class DecaySolver {
 public:
-    DecaySolver();
+    explicit DecaySolver(Chain& chain);
 
-    void compute_coeffs(Chain &chain, std::map<std::string, double> ccMap);
+    void compute_coeffs(std::map<std::string, double> ccMap);
 
-    std::vector<std::vector<double> > run(Chain &chain,
-                                          const std::map<std::string, double> &ccMap,
+    std::vector<std::vector<double> > run(const std::map<std::string, double> &ccMap,
                                           std::vector<double> times);
 
     void to_hdf5(H5Easy::File &file) const;
+
+    std::vector<double> Ns_vector() const;
 
     Chain chain_;
     std::map<std::string, double> ccMap_;
