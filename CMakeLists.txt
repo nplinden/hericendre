@@ -23,30 +23,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(HDF5 REQUIRED)
-set(EIGEN_BUILD_DOC OFF)
-add_subdirectory(vendor/eigen)
-add_subdirectory(vendor/fmt)
-add_subdirectory(vendor/pugixml)
-add_subdirectory(vendor/yaml-cpp)
-add_subdirectory(vendor/HighFive)
-
 include_directories(inc)
 
-option(EIGEN_BUILD_DOC "Enable creation of Eigen documentation" OFF)
-add_library(${TARGET} SHARED ${HERICENDRE_SOURCE_LIST})
-target_link_libraries(${TARGET} Eigen3::Eigen pugixml fmt yaml-cpp HighFive)
+find_package(HighFive CONFIG REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(pugixml CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
 
-add_executable(${TARGET}Exe src/main.cpp)
-target_link_libraries(${TARGET}Exe Hericendre)
-set_property(TARGET ${TARGET}Exe PROPERTY OUTPUT_NAME ${TARGET})
-
-add_subdirectory(vendor/pybind11)
-pybind11_add_module(pyHericendre
-        src/python/pyHericendre.cpp
-        src/python/nuclide.cpp
-        src/python/chain.cpp
-        src/python/model.cpp)
-target_link_libraries(pyHericendre PRIVATE Hericendre)
-set_property(TARGET pyHericendre PROPERTY OUTPUT_NAME hericendre)
-set_property(TARGET HericendreExe PROPERTY OUTPUT_NAME hericendre)
+add_executable(Hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
+target_link_libraries(Hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml yaml-cpp::yaml-cpp)
