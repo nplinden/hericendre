@@ -13,14 +13,14 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        fmt::print("No input file was provided! Exiting.\n");
+        fmt::print("[ERROR] No input file was provided! Exiting.\n");
         return 0;
     }
 
     std::string inputPath(argv[1]);
     fmt::print("Running {:s}...\n", inputPath);
     Model inputModel(inputPath);
-    inputModel.run();
+    // inputModel.run();
 
     return 0;
 }
