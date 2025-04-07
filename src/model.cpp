@@ -4,7 +4,6 @@
 #include "cramsolver.h"
 #include "utils.h"
 #include <cmath>
-#include "yaml-cpp/yaml.h"
 #include <fmt/ranges.h>
 #include <fmt/core.h>
 #include <algorithm>

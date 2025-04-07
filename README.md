@@ -11,7 +11,7 @@ Depletion:
 
 - Add HDF5 result files
 - Support neutron reactions (no fission)
-    - Find a suitable file format to store multigroup cross-sections
+  - Find a suitable file format to store multigroup cross-sections
 - Support secondary particle for neutron reactions
 - Support fission
 
@@ -21,30 +21,18 @@ Utilities:
 
 An example:
 
-```yaml
-Solver: Decay
-Chain: /home/nlinden/workspace/hericendre/data/chain-jeff33-long.xml
-Results: results_decay.csv
-TimeMode: Timestamps
-Time: >
-  logspace 1e-10 1e17 271 ;
-  1e17
-ConcentrationMode: Uniform
-Concentrations: 1.
-```
+```toml
+name = "An example input file"
 
-Another:
+[Settings]
+chain = "data/chain_casl_sfr.xml"
+results = "results/results_cram.csv"
+solver = "CRAM48"
 
-```yaml
-Solver: CRAM48
-Chain: /home/nlinden/workspace/hericendre/data/chain-jeff33-long.xml
-Results: results_decay.csv
-TimeMode: Timestamps
-Time: >
-  logspace 1e-10 1e17 271 ;
-  1e17
-ConcentrationMode: Explicit
-Concentrations: >
-  Pu239 10.
-  U235 10.
+[Material]
+uniform = 1.0
+
+[Time]
+unit = "y"
+timestamps = [0, "linspace 1 10 9", 10]
 ```
