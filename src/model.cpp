@@ -11,6 +11,7 @@
 #include <highfive/H5Easy.hpp>
 #include <toml++/toml.hpp>
 #include <optional>
+#include <set>
 
 Model::Model(const std::string &inputpath)
 {
