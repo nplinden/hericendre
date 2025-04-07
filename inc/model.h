@@ -5,8 +5,22 @@
 #include <vector>
 #include "yaml-cpp/yaml.h"
 #include "chain.h"
+#include <toml++/toml.hpp>
 
-class Model {
+enum SolverType
+{
+    DECAY,
+    CRAM48
+};
+
+const std::map<std::string, double> TIME_UNITS = {
+    {"s", 1.},
+    {"h", 3600.},
+    {"d", 3600. * 24.},
+    {"y", 3600. * 24. * 365.25}};
+
+class Model
+{
 public:
     // CONSTRUCTORS
     explicit Model(const std::string &inputpath);
@@ -27,11 +41,11 @@ public:
     std::vector<double> times_;
 
 private:
-    void readTimes(const YAML::Node &input);
+    void readSettings(const toml::table &tbl);
+    void readTimes(const toml::table &tbl);
+    std::vector<double> compute_time_function(const std::string &str);
 
     void readCc(const YAML::Node &input);
-
-    void readSolverType(const YAML::Node &input);
 
     std::vector<double> linspace(const std::vector<std::string> &splat) const;
 
@@ -41,16 +55,11 @@ private:
 
     Chain chain_;
 
-
     std::string inputpath_;
+    std::string name_;
 
-
-    const std::map<std::string, double> time_units = {
-        {"s", 1.},
-        {"h", 3600.},
-        {"d", 3600. * 24.},
-        {"y", 3600. * 24. * 365.25}
-    };
+    std::string time_unit_name_;
+    double time_unit_magnitude_;
 };
 
 #endif

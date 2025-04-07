@@ -10,44 +10,185 @@
 #include <algorithm>
 #include <decaysolver.h>
 #include <highfive/H5Easy.hpp>
+#include <toml++/toml.hpp>
+#include <optional>
 
 Model::Model(const std::string &inputpath)
 {
-    YAML::Node input = YAML::LoadFile(inputpath);
-    chainpath_ = input["Chain"].as<std::string>();
-    chain_ = Chain(chainpath_.c_str());
-    resultpath_ = input["Results"].as<std::string>();
+    toml::table tbl;
 
-    readSolverType(input);
-    readTimes(input);
+    try
+    {
+        tbl = toml::parse_file(inputpath);
+    }
+    catch (const toml::parse_error &err)
+    {
+        fmt::print("[ERROR] Parsing input file failed\n");
+        throw std::runtime_error(err);
+    }
+
+    std::optional<std::string> name = tbl["name"].value<std::string>();
+    this->name_ = name ? *name : "";
+
+    readSettings(tbl);
+    readTimes(tbl);
+
+    /*
     readCc(input);
+    */
 }
 
 Model::Model() = default;
 
-void Model::readSolverType(const YAML::Node &input)
+void Model::readSettings(const toml::table &tbl)
 {
-    // CRAM48 is used by default if no solver is set
-    if (const auto modenode = input["Solver"]; !modenode)
+    std::optional<std::string> chainpath = tbl["Settings"]["chain"].value<std::string>();
+    if (chainpath)
     {
-        solvertype_ = "CRAM48";
+        chainpath_ = *chainpath;
+        this->chain_ = Chain(chainpath_.c_str());
     }
     else
     {
-        auto solvertype = modenode.as<std::string>();
-        if (solvertype == "CRAM48")
+        fmt::print("[ERROR] No depletion chain file was specified\n");
+        throw std::runtime_error("No depletion chain file was specified");
+    }
+
+    std::optional<std::string> resultpath = tbl["Settings"]["results"].value<std::string>();
+    if (resultpath)
+    {
+        this->resultpath_ = *resultpath;
+    }
+    else
+    {
+        fmt::print("[ERROR] No result file was specified\n");
+        throw std::runtime_error("No result file was specified");
+    }
+
+    std::optional<std::string> solver = tbl["Settings"]["solver"].value<std::string>();
+    std::set<std::string> allowed_solvers = {"CRAM48", "Decay"};
+    if (!solver)
+    {
+        fmt::print("No solver type specified, using CRAM48\n");
+        this->solvertype_ = "CRAM48";
+    }
+    else if (allowed_solvers.find(*solver) != allowed_solvers.end())
+    {
+        this->solvertype_ = *solver;
+    }
+    else
+    {
+        fmt::print("[ERROR] Invalid solver type \"{}\", allowed solver: {}\n", *solver, fmt::join(allowed_solvers, ", "));
+        throw std::runtime_error("Invalid solver type");
+    }
+}
+
+void Model::readTimes(const toml::table &tbl)
+{
+    // TIMESTAMPS
+    auto timestamps = tbl["Time"]["timestamps"].as_array();
+    if (!timestamps)
+    {
+        fmt::print("[ERROR] No timestamps provided\n");
+        throw std::runtime_error("No timestamps provided");
+    }
+    else
+    {
+        for (const auto &item : *timestamps)
         {
-            solvertype_ = "CRAM48";
+            if (item.is<double>())
+            {
+                this->times_.push_back(*item.value<double>());
+            }
+            else if (item.is<std::string>())
+            {
+                auto expended = this->compute_time_function(*item.value<std::string>());
+                for (const auto &t : expended)
+                {
+                    this->times_.push_back(t);
+                }
+            }
+            else if (item.is<int64_t>())
+            {
+                this->times_.push_back(*item.value<double>());
+            }
+            else
+            {
+                fmt::print("[ERROR] Invalid type in timestamps definition\n");
+                throw std::runtime_error("Invalid type in timestamps definition");
+            }
         }
-        else if (solvertype == "Decay")
+    }
+
+    auto units = tbl["Time"]["unit"];
+    if (!units)
+    {
+        this->time_unit_name_ = "s";
+        this->time_unit_magnitude_ = 1.;
+    }
+    else if (units.is<std::string>())
+    {
+        auto unit_name = *units.value<std::string>();
+        if (TIME_UNITS.find(unit_name) == TIME_UNITS.end())
         {
-            solvertype_ = "Decay";
+            fmt::print("[ERROR] Invalid unit name\n");
+            throw std::runtime_error("Invalid unit name");
         }
         else
         {
-            fmt::print("[ERROR] Invalid solver type '{:s}'\n", solvertype);
-            throw std::runtime_error(fmt::format("Invalid solver type '{}'", solvertype));
+            this->time_unit_name_ = unit_name;
+            this->time_unit_magnitude_ = TIME_UNITS.at(unit_name);
         }
+    }
+    else if (units.is<toml::table>())
+    {
+        auto unit_table = *units.as_table();
+        auto name = unit_table["name"];
+        if (!name || !name.is<std::string>())
+        {
+            fmt::print("[ERROR] Invalid time unit name.\n");
+            throw std::runtime_error("[ERROR] Invalid time unit name.");
+        }
+        else
+        {
+            this->time_unit_name_ = *name.value<std::string>();
+        }
+        auto magnitude = unit_table["magnitude"];
+        if (!magnitude)
+        {
+            fmt::print("[ERROR] Invalid time unit magnitude.\n");
+            throw std::runtime_error("[ERROR] Invalid time unit magnitude.");
+        }
+        else if (magnitude.is<double>() || magnitude.is<int64_t>())
+        {
+            this->time_unit_magnitude_ = *magnitude.value<double>();
+        }
+        else
+        {
+            fmt::print("[ERROR] Invalid time unit magnitude.\n");
+            throw std::runtime_error("[ERROR] Invalid time unit magnitude.");
+        }
+    }
+    else
+    {
+        fmt::print("[ERROR] Time unit must be either a string or a table.\n");
+        throw std::runtime_error("Time unit must be either a string or a table.");
+    }
+
+    for (auto &t : this->times_)
+    {
+        t *= this->time_unit_magnitude_;
+    }
+
+    if (!std::is_sorted(this->times_.begin(), this->times_.end()))
+    {
+        fmt::print("[ERROR] Time vector is not sorted.\n");
+        throw std::runtime_error("Time vector is not sorted.");
+    }
+
+    for (const double &t : this->times_)
+    {
+        fmt::print("{}\n", t);
     }
 }
 
@@ -75,60 +216,31 @@ void Model::readCc(const YAML::Node &input)
     }
 }
 
-void Model::readTimes(const YAML::Node &input)
+std::vector<double> Model::compute_time_function(const std::string &str)
 {
-    const auto timemode = input["TimeMode"].as<std::string>();
-
-    const std::vector<std::string> raw_times = split(input["Time"].as<std::string>());
-    fmt::print("{}", fmt::join(raw_times, " "));
-    std::vector<std::vector<std::string>> lines;
-    lines.emplace_back();
-    double T = 0.;
-    for (const auto &word : raw_times)
+    std::vector<std::string> splat = split(str);
+    if (splat.size() < 4)
     {
-        if (word == ";")
+        fmt::print("[ERROR] Invalid time function in timestamps definition");
+        throw std::runtime_error("Invalid time function in timestamps definition");
+    }
+    else
+    {
+        auto kind = splat[0];
+        if (kind == "linspace")
         {
-            lines.emplace_back();
+            return this->linspace(splat);
+        }
+        else if (kind == "logspace")
+        {
+            return this->logspace(splat);
         }
         else
         {
-            lines.back().push_back(word);
+            fmt::print("[ERROR] Invalid time function in timestamps definition");
+            throw std::runtime_error("Invalid time function in timestamps definition");
         }
     }
-
-    for (const auto &line : lines)
-    {
-        if (line[0] == "linspace")
-        {
-            std::vector<double> values = linspace(line);
-            times_.insert(times_.end(), values.begin(), values.end());
-        }
-        else if (line[0] == "logspace")
-        {
-            std::vector<double> values = logspace(line);
-            times_.insert(times_.end(), values.begin(), values.end());
-        }
-        else
-        {
-            const double val = stod(line[0]);
-            const double factor = (line.size() == 2) ? time_units.at(line[1]) : 1.;
-            if (timemode == "Timestamps")
-            {
-                times_.push_back(val * factor);
-            }
-            else if (timemode == "Delta")
-            {
-                times_.push_back(T + val * factor);
-                T = times_.back();
-            }
-        }
-    }
-    if (times_[0] != 0)
-    {
-        times_.insert(times_.begin(), 0.);
-    }
-    if (!std::is_sorted(times_.begin(), times_.end()))
-        throw std::runtime_error("Time vector is not sorted");
 }
 
 std::vector<double> Model::linspace(const std::vector<std::string> &splat) const
@@ -142,7 +254,7 @@ std::vector<double> Model::linspace(const std::vector<std::string> &splat) const
     std::vector<double> values;
     for (int istep = 0; istep < nstep; istep++)
     {
-        values.push_back((start + istep * step) * time_units.at(unit));
+        values.push_back((start + istep * step));
     }
     return values;
 }
@@ -158,7 +270,7 @@ std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
     std::vector<double> values;
     for (int istep = 0; istep < nstep; istep++)
     {
-        values.push_back((pow(10, start + istep * step)) * time_units.at(unit));
+        values.push_back((pow(10, start + istep * step)));
     }
     return values;
 }
