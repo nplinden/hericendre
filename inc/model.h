@@ -42,10 +42,9 @@ public:
 
 private:
     void readSettings(const toml::table &tbl);
-    void readTimes(const toml::table &tbl);
+    void readTime(const toml::table &tbl);
     std::vector<double> compute_time_function(const std::string &str);
-
-    void readCc(const YAML::Node &input);
+    void readMaterial(const toml::table &tbl);
 
     std::vector<double> linspace(const std::vector<std::string> &splat) const;
 

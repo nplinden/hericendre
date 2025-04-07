@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     std::string inputPath(argv[1]);
     fmt::print("Running {:s}...\n", inputPath);
     Model inputModel(inputPath);
-    // inputModel.run();
+    inputModel.run();
 
     return 0;
 }

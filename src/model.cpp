@@ -31,11 +31,8 @@ Model::Model(const std::string &inputpath)
     this->name_ = name ? *name : "";
 
     readSettings(tbl);
-    readTimes(tbl);
-
-    /*
-    readCc(input);
-    */
+    readTime(tbl);
+    readMaterial(tbl);
 }
 
 Model::Model() = default;
@@ -81,9 +78,10 @@ void Model::readSettings(const toml::table &tbl)
         fmt::print("[ERROR] Invalid solver type \"{}\", allowed solver: {}\n", *solver, fmt::join(allowed_solvers, ", "));
         throw std::runtime_error("Invalid solver type");
     }
+    fmt::print("{}\n", this->solvertype_);
 }
 
-void Model::readTimes(const toml::table &tbl)
+void Model::readTime(const toml::table &tbl)
 {
     // TIMESTAMPS
     auto timestamps = tbl["Time"]["timestamps"].as_array();
@@ -192,30 +190,40 @@ void Model::readTimes(const toml::table &tbl)
     }
 }
 
-void Model::readCc(const YAML::Node &input)
+void Model::readMaterial(const toml::table &tbl)
 {
-    std::string ccmode = "Explicit";
-    if (const auto mode = input["ConcentrationMode"])
-        ccmode = mode.as<std::string>();
-    if (ccmode == "Explicit")
+    std::optional<double> uniform = tbl["Material"]["uniform"].value<double>();
+    auto concentrations = tbl["Material"]["concentrations"].as_table();
+    if (concentrations && uniform)
     {
-        const std::vector<std::string> cc = split(input["Concentrations"].as<std::string>());
-        for (size_t i = 0; i < cc.size(); i += 2)
-            initcc_[cc[i]] = stod(cc[i + 1]);
+        fmt::print("[ERROR] uniform and concentration can't be defined at the same time\n");
+        throw std::runtime_error(fmt::format("uniform and concentration can't be defined at the same time"));
     }
-    else if (ccmode == "Uniform")
+    else if (uniform)
     {
-        const double val = stod(input["Concentrations"].as<std::string>());
         for (const auto &nuclide : chain_.nuclides_)
-            initcc_[nuclide->name_] = val;
+            initcc_[nuclide->name_] = *uniform;
     }
-    else
+    else if (concentrations)
     {
-        fmt::print("[ERROR] Invalid ConcentrationMode '{:s}'\n", ccmode);
-        throw std::runtime_error(fmt::format("Invalid ConcentrationMode '{}'", ccmode));
+        for (const auto &nuclide : *concentrations)
+        {
+            fmt::print("{} ", nuclide.first.str());
+            auto conc = nuclide.second.value<double>();
+            if (!conc)
+            {
+                fmt::print("[ERROR] Concentration as non number value\n");
+                throw std::runtime_error(fmt::format("Concentration as non number value"));
+            }
+            else
+            {
+                initcc_[std::string(nuclide.first.str())] = *conc;
+            }
+        }
     }
-}
 
+    // auto unit_table = *units.as_table();
+}
 std::vector<double> Model::compute_time_function(const std::string &str)
 {
     std::vector<std::string> splat = split(str);
@@ -283,9 +291,9 @@ void Model::run()
         solver.run(initcc_, times_);
         auto results = solver.results_;
         results.to_csv(resultpath_);
-        H5Easy::File file("results.h5", H5Easy::File::Overwrite);
-        results.to_hdf5(file);
-        solver.to_hdf5((file));
+        // H5Easy::File file("results.h5", H5Easy::File::Overwrite);
+        // results.to_hdf5(file);
+        // solver.to_hdf5((file));
     }
     else if (solvertype_ == "CRAM48")
     {
