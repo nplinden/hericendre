@@ -30,6 +30,7 @@ find_package(Eigen3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
 
 add_executable(Hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
-target_link_libraries(Hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml yaml-cpp::yaml-cpp)
+target_link_libraries(Hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml yaml-cpp::yaml-cpp tomlplusplus::tomlplusplus)

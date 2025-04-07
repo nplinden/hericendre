@@ -4,6 +4,7 @@
     "fmt",
     "highfive",
     "pugixml",
-    "yaml-cpp"
+    "yaml-cpp",
+    "tomlplusplus"
   ]
 }
