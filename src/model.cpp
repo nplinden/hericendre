@@ -12,6 +12,7 @@
 #include <toml++/toml.hpp>
 #include <optional>
 #include <set>
+#include <filesystem>
 
 Model::Model(const std::string &inputpath)
 {
@@ -284,26 +285,34 @@ std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
 
 void Model::run()
 {
+    // H5Easy::File file("results.h5", H5Easy::File::Overwrite);
+    Results results;
     if (solvertype_ == "Decay")
     {
         DecaySolver solver(chain_);
         solver.run(initcc_, times_);
-        auto results = solver.results_;
-        results.to_csv(resultpath_);
-        // H5Easy::File file("results.h5", H5Easy::File::Overwrite);
-        // results.to_hdf5(file);
-        // solver.to_hdf5((file));
+        results = solver.results_;
     }
     else if (solvertype_ == "CRAM48")
     {
         CRAMSolver solver;
         solver.run(chain_, initcc_, times_);
-        auto results = solver.results_;
-        results.to_csv(resultpath_);
+        results = solver.results_;
     }
     else
     {
         throw std::runtime_error(fmt::format("Invalid solver '{}'", solvertype_));
+    }
+    // if (this->resultpath_)
+    auto extension = std::filesystem::path(this->resultpath_).extension();
+    if (extension == ".h5" || extension == ".hdf5")
+    {
+        H5Easy::File file(this->resultpath_, H5Easy::File::Overwrite);
+        results.to_hdf5(file);
+    }
+    else
+    {
+        results.to_csv(this->resultpath_);
     }
 }
 
