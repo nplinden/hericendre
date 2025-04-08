@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
     }
 
     std::string inputPath(argv[1]);
-    // fmt::print("Running {:s}...\n", inputPath);
     Model inputModel(inputPath);
     inputModel.summarize();
     inputModel.run();

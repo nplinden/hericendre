@@ -53,7 +53,7 @@ void Results::to_csv(const std::string &path, const bool ignore_zeros) const
 
 void Results::to_hdf5(H5Easy::File &file) const
 {
-    H5Easy::dump(file, "results/CONCENTRATIONS", this->cc_);
-    H5Easy::dump(file, "results/TIMES", this->times_);
-    H5Easy::dump(file, "results/NUCLIDES", this->nuclides_);
+    H5Easy::dump(file, "CONCENTRATIONS", this->cc_);
+    H5Easy::dump(file, "TIMES", this->times_);
+    H5Easy::dump(file, "NUCLIDES", this->nuclides_);
 }
