@@ -303,7 +303,6 @@ void Model::run()
     {
         throw std::runtime_error(fmt::format("Invalid solver '{}'", solvertype_));
     }
-    // if (this->resultpath_)
     auto extension = std::filesystem::path(this->resultpath_).extension();
     if (extension == ".h5" || extension == ".hdf5")
     {
