@@ -208,7 +208,6 @@ void Model::readMaterial(const toml::table &tbl)
     {
         for (const auto &nuclide : *concentrations)
         {
-            fmt::print("{} ", nuclide.first.str());
             auto conc = nuclide.second.value<double>();
             if (!conc)
             {

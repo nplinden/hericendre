@@ -14,9 +14,13 @@ enum SolverType
 
 const std::map<std::string, double> TIME_UNITS = {
     {"s", 1.},
+    {"second", 1.},
     {"h", 3600.},
+    {"hour", 3600.},
     {"d", 3600. * 24.},
-    {"y", 3600. * 24. * 365.25}};
+    {"day", 3600. * 24.},
+    {"y", 3600. * 24. * 365.25},
+    {"year", 3600. * 24. * 365.25}};
 
 class Model
 {
