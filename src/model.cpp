@@ -78,7 +78,6 @@ void Model::readSettings(const toml::table &tbl)
         fmt::print("[ERROR] Invalid solver type \"{}\", allowed solver: {}\n", *solver, fmt::join(allowed_solvers, ", "));
         throw std::runtime_error("Invalid solver type");
     }
-    fmt::print("{}\n", this->solvertype_);
 }
 
 void Model::readTime(const toml::table &tbl)
@@ -184,10 +183,10 @@ void Model::readTime(const toml::table &tbl)
         throw std::runtime_error("Time vector is not sorted.");
     }
 
-    for (const double &t : this->times_)
-    {
-        fmt::print("{}\n", t);
-    }
+    // for (const double &t : this->times_)
+    // {
+    //     fmt::print("{}\n", t);
+    // }
 }
 
 void Model::readMaterial(const toml::table &tbl)
@@ -317,4 +316,21 @@ void Model::set_chainpath(const std::string &chainpath)
 {
     chainpath_ = chainpath;
     chain_ = Chain(chainpath_.c_str());
+}
+
+void Model::summarize()
+{
+    int width = 50;
+    fmt::print("┌{0:─^{1}}┐\n", this->name_, width); // Title
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Name", this->name_);
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", this->chainpath_);
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Number of nuclides", this->chain_.nuclides_.size());
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Solver", this->solvertype_);
+
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Number of timestamps", this->times_.size());
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Time unit", this->time_unit_name_);
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Begin date", this->times_.front());
+    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "End date", this->times_.back());
+
+    fmt::print("└{0:─^{1}}┘\n", "", width);
 }

@@ -27,6 +27,7 @@ public:
     explicit Model();
 
     void run();
+    void summarize();
 
     std::string chainpath() const;
 
