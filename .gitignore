@@ -6,6 +6,8 @@ data/
 compile_commands.json
 cmake-build-*/
 
+.python-version
+
 # Project specific
 pytest-artifacts
 uv.lock
