@@ -330,12 +330,17 @@ void Model::summarize()
     int width = 50;
     fmt::print("┌{0:─^{1}}┐\n", this->name_, width); // Title
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Name", this->name_);
-    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", this->chainpath_);
+    
+    if (this->chainpath_.size() > 40) {
+        auto filename = std::filesystem::path(this->chainpath_).filename().string();
+        fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", filename);
+    } else {
+        fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", this->chainpath_);
+    }
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Number of nuclides", this->chain_.nuclides_.size());
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Solver", this->solvertype_);
 
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Number of timestamps", this->times_.size());
-    fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Time unit", this->time_unit_name_);
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Begin date", this->times_.front());
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "End date", this->times_.back());
 
