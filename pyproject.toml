@@ -1,0 +1,20 @@
+[project]
+name = "hericendre"
+version = "0.1.0"
+description = "A radioactive decay and fuel depletion code"
+readme = "README.md"
+authors = [{ name = "Nicolas Linden", email = "nicolas@nlinden.com" }]
+requires-python = ">=3.11"
+dependencies = [
+    "h5py>=3.13.0",
+    "numpy>=2.2.4",
+    "pint>=0.24.4",
+    "polars>=1.26.0",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"

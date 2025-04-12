@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "eigen3",
+    "fmt",
+    "highfive",
+    "pugixml",
+    "tomlplusplus"
+  ]
+}

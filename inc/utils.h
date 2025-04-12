@@ -12,6 +12,13 @@
 std::vector<std::string> split(const std::string &str);
 
 /**
+ * \brief Trim whitespaces from a string.
+ *
+ * \param str
+ */
+std::string trim(const std::string &str);
+
+/**
  * \brief Concatenate a vector of strings in a single string,
  * with space separators.
  *
@@ -27,9 +34,11 @@ std::string concatenate(const std::vector<std::string> &strs);
  */
 std::string fmtDouble(double d);
 
-template<typename K, typename V>
-V atWithDefault(const std::map<K, V> &m, const K &k, const V &deflt) {
-    if (m.find(k) != m.end()) {
+template <typename K, typename V>
+V atWithDefault(const std::map<K, V> &m, const K &k, const V &deflt)
+{
+    if (m.find(k) != m.end())
+    {
         return m.at(k);
     }
     return deflt;

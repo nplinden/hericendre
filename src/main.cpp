@@ -2,14 +2,25 @@
 #include <fmt/core.h>
 #include <highfive/highfive.hpp>
 
-int main(int argc, char *argv[]) {
-    (void) argc;
+int main(int argc, char *argv[])
+{
+    fmt::print("    __  __          _                     __\n");
+    fmt::print("   / / / /__  _____(_)_______  ____  ____/ /_______ \n");
+    fmt::print("  / /_/ / _ \\/ ___/ / ___/ _ \\/ __ \\/ __  / ___/ _ \\\n");
+    fmt::print(" / __  /  __/ /  / / /__/  __/ / / / /_/ / /  /  __/\n");
+    fmt::print("/_/ /_/\\___/_/  /_/\\___/\\___/_/ /_/\\__,_/_/   \\___/\n");
+    fmt::print("\n");
 
-    std::string inputpath(argv[1]);
-    fmt::print("Running {:s}...\n", inputpath);
-    Model myinput(inputpath);
-    myinput.run();
+    if (argc < 2)
+    {
+        fmt::print("[ERROR] No input file was provided! Exiting.\n");
+        return 0;
+    }
 
-    auto file = HighFive::File("foo.h5", HighFive::File::Create);
+    std::string inputPath(argv[1]);
+    Model inputModel(inputPath);
+    inputModel.summarize();
+    inputModel.run();
+
     return 0;
 }

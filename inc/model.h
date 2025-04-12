@@ -3,10 +3,27 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "yaml-cpp/yaml.h"
 #include "chain.h"
+#include <toml++/toml.hpp>
 
-class Model {
+enum SolverType
+{
+    DECAY,
+    CRAM48
+};
+
+const std::map<std::string, double> TIME_UNITS = {
+    {"s", 1.},
+    {"second", 1.},
+    {"h", 3600.},
+    {"hour", 3600.},
+    {"d", 3600. * 24.},
+    {"day", 3600. * 24.},
+    {"y", 3600. * 24. * 365.25},
+    {"year", 3600. * 24. * 365.25}};
+
+class Model
+{
 public:
     // CONSTRUCTORS
     explicit Model(const std::string &inputpath);
@@ -14,6 +31,7 @@ public:
     explicit Model();
 
     void run();
+    void summarize();
 
     std::string chainpath() const;
 
@@ -27,11 +45,10 @@ public:
     std::vector<double> times_;
 
 private:
-    void readTimes(const YAML::Node &input);
-
-    void readCc(const YAML::Node &input);
-
-    void readSolverType(const YAML::Node &input);
+    void readSettings(const toml::table &tbl);
+    void readTime(const toml::table &tbl);
+    std::vector<double> compute_time_function(const std::string &str);
+    void readMaterial(const toml::table &tbl);
 
     std::vector<double> linspace(const std::vector<std::string> &splat) const;
 
@@ -41,16 +58,11 @@ private:
 
     Chain chain_;
 
-
     std::string inputpath_;
+    std::string name_;
 
-
-    const std::map<std::string, double> time_units = {
-        {"s", 1.},
-        {"h", 3600.},
-        {"d", 3600. * 24.},
-        {"y", 3600. * 24. * 365.25}
-    };
+    std::string time_unit_name_;
+    double time_unit_magnitude_;
 };
 
 #endif
