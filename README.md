@@ -1,32 +1,53 @@
 # Welcome to Héricendre
 
-Héricendre is a standalone Bateman equation solver. Its purpose is to be easy to use through human readable `yaml` input
-file as well as (in the future) a python API. Its secondary purpose is to teach myself `c++`.
+## Installation
 
-It uses depletion chain in the OpenMC `xml` format.
+Héricendre uses [vcpkg](https://vcpkg.io/en/) for dependency management.
+Simply install vcpkg and identify the path to the `vcpkg.cmake` file.
+It should be located in `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake`.
 
-## Roadmap
+To only build the `hericendre` binary, go to the Héricendre root directory and do:
 
-Depletion:
+```console
+$ cmake -Bbuild/ -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg.cmake .
+$ cd build
+$ make
+```
 
-- Add HDF5 result files
-- Support neutron reactions (no fission)
-  - Find a suitable file format to store multigroup cross-sections
-- Support secondary particle for neutron reactions
-- Support fission
+To build the `hericendre` python package:
 
-Utilities:
+```console
+$ uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=/path/to/vcpkg.cmake
+```
 
-- Support chain reduction
+## Use
 
-An example:
+The compute the decay of a single nuclide over 10 years:
 
 ```toml
-name = "An example input file"
+name = "Example"
 
 [Settings]
 chain = "data/chain_casl_sfr.xml"
-results = "results/results_cram.csv"
+results = "results/results_cram.h5"
+solver = "CRAM48"
+
+[Material]
+concentrations = { Pu239 = 1 }
+
+[Time]
+unit = "y"
+timestamps = [0, "linspace 1 10 9", 10]
+```
+
+To compute the decay of a material containing 1 single unit of every nuclide in the chain:
+
+```toml
+name = "Example"
+
+[Settings]
+chain = "data/chain_casl_sfr.xml"
+results = "results/results_cram.h5"
 solver = "CRAM48"
 
 [Material]
