@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(Hericendre VERSION 0.1)
 set(CMAKE_CXX_STANDARD 20)
-set(TARGET Hericendre)
+set(TARGET hericendre)
 set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
         src/chain.cpp
         src/decay.cpp
@@ -31,5 +31,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 
-add_executable(Hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
-target_link_libraries(Hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml tomlplusplus::tomlplusplus)
+add_executable(hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
+target_link_libraries(hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml tomlplusplus::tomlplusplus)
+
+install(TARGETS hericendre DESTINATION ${SKBUILD_SCRIPTS_DIR})

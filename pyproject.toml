@@ -12,9 +12,12 @@ dependencies = [
     "polars>=1.26.0",
 ]
 
-[project.scripts]
-hericendre = "hericendre:main"
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.args = [
+    "-DCMAKE_TOOLCHAIN_FILE=/home/nlinden/workspace/vcpkg/scripts/buildsystems/vcpkg.cmake",
+]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["scikit-build-core>=0.10", "pybind11"]
+build-backend = "scikit_build_core.build"
