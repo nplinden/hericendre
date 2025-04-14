@@ -40,7 +40,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
-          name: wheel-artifacts
+          name: ${{ matrix.os }}-wheel
           path: dist/*.whl
 
   upload:
@@ -48,10 +48,28 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Upload wheels to PyPI
+      - name: Download linux x86 wheel
         uses: actions/download-artifact@v4
         with:
-          name: wheel-artifacts
+          name: ubuntu-latest-wheel
+          path: dist
+
+      - name: Download linux x86 wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-24.04-arm-wheel
+          path: dist
+
+      - name: Download linux x86 wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-latest-wheel
+          path: dist
+
+      - name: Download linux x86 wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-13-wheel
           path: dist
 
       - name: List downloaded artifacts
