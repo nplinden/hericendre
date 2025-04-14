@@ -33,6 +33,7 @@ jobs:
       - name: Install C++ Dependencies
         run: |
           ./vcpkg/vcpkg install
+          tree vcpkg_installed
 
       - name: Build Package
         run: |
