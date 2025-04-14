@@ -27,14 +27,12 @@ jobs:
           export VCPKG_CMAKE=vcpkg/scripts/buildsystems/vcpkg.cmake
           ls $VCPKG_CMAKE
 
+      - name: Some Prints
+        run: ls -lah && echo "In vcpkg:" && ls -lah vcpkg
+
       - name: Install C++ Dependencies
         run: |
-          .vcpkg/vcpkg install
-        #   ./vcpkg/vcpkg install highfive
-        #   ./vcpkg/vcpkg install eigen3
-        #   ./vcpkg/vcpkg install fmt
-        #   ./vcpkg/vcpkg install pugixml
-        #   ./vcpkg/vcpkg install tomlplusplus
+          ./vcpkg/vcpkg install
 
       - name: Build Package
         run: |
