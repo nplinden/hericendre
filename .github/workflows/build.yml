@@ -29,3 +29,11 @@ jobs:
           export VCPKG_CMAKE="$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake"
           export VCPKG_ROOT="$(pwd)/vcpkg/"
           uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE 
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with: 
+          name: dist-dir
+          path: dist
+
+          
