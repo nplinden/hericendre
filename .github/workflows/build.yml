@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", "ubuntu-24.04-arm", "macos-latest", "macos-13"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout
@@ -40,7 +41,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
-          name: ${{ matrix.os }}-wheel
+          name: ${{ matrix.python-version }}-${{ matrix.os }}-wheel
           path: dist/*.whl
 
   upload:
