@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build wheel on ${{ matrix.os }}
+    name: Build wheel on ${{ matrix.os }} for ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -41,7 +41,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
-          name: ${{ matrix.python-version }}-${{ matrix.os }}-wheel
+          name: wheel-cp${{ matrix.python-version }}-${{ matrix.os }}
           path: dist/*.whl
 
   upload:
@@ -52,26 +52,9 @@ jobs:
       - name: Download linux x86 wheel
         uses: actions/download-artifact@v4
         with:
-          name: ubuntu-latest-wheel
+          name: wheel-cp*
           path: dist
-
-      - name: Download linux x86 wheel
-        uses: actions/download-artifact@v4
-        with:
-          name: ubuntu-24.04-arm-wheel
-          path: dist
-
-      - name: Download linux x86 wheel
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-latest-wheel
-          path: dist
-
-      - name: Download linux x86 wheel
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-13-wheel
-          path: dist
+          merge-multiple: true
 
       - name: List downloaded artifacts
         run: ls -lah dist
