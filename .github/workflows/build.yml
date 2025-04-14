@@ -13,11 +13,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+  
       - name: Install vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git
@@ -28,7 +29,9 @@ jobs:
           apt update -y && apt install -y cmake
           export VCPKG_CMAKE="$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake"
           export VCPKG_ROOT="$(pwd)/vcpkg/"
-          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE 
+          python -m pip install --upgrade build
+          python -m build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE
+
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
