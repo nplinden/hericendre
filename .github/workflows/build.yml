@@ -36,5 +36,5 @@ jobs:
 
       - name: Build Package
         run: |
-          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE
+          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE -Ccmake.define.CMAKE_PREFIX_PATH=./vcpkg_installed
           ls dist
