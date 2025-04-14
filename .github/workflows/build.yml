@@ -37,7 +37,6 @@ jobs:
           python -m pip install --upgrade build
           python -m build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE
 
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
@@ -58,4 +57,10 @@ jobs:
 
       - name: List downloaded artifacts
         run: ls -lah dist
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with: 
+          name: hericendre-wheels
+          path: dist
           
