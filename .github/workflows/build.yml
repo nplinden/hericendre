@@ -17,25 +17,15 @@ jobs:
       - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.sh
-          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
-          export VCPKG_CMAKE=vcpkg/scripts/buildsystems/vcpkg.cmake
-          ls $VCPKG_CMAKE
-
-      - name: Some Prints
-        run: ls -lah && echo "In vcpkg:" && ls -lah vcpkg
-
-      - name: Install C++ Dependencies
-        run: |
-          ./vcpkg/vcpkg install
-          tree vcpkg_installed
 
       - name: Build Package
         run: |
-          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE -Ccmake.define.CMAKE_PREFIX_PATH=./vcpkg_installed/x64-linux/include
-          ls dist
+          apt update -y && apt install -y cmake
+          export VCPKG_CMAKE="$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          export VCPKG_ROOT="$(pwd)/vcpkg/"
+          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE 
