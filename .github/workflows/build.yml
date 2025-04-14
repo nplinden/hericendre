@@ -26,3 +26,8 @@ jobs:
           echo "$(pwd)/vcpkg" >> $GITHUB_PATH
           export VCPKG_CMAKE=vcpkg/scripts/buildsystems/vcpkg.cmake
           ls $VCPKG_CMAKE
+
+      - name: Build Package
+        run: |
+          uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE
+          ls dist
