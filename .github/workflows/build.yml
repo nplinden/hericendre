@@ -29,11 +29,12 @@ jobs:
 
       - name: Install C++ Dependencies
         run: |
-          ./vcpkg/vcpkg install highfive
-          ./vcpkg/vcpkg install eigen3
-          ./vcpkg/vcpkg install fmt
-          ./vcpkg/vcpkg install pugixml
-          ./vcpkg/vcpkg install tomlplusplus
+          .vcpkg/vcpkg install
+        #   ./vcpkg/vcpkg install highfive
+        #   ./vcpkg/vcpkg install eigen3
+        #   ./vcpkg/vcpkg install fmt
+        #   ./vcpkg/vcpkg install pugixml
+        #   ./vcpkg/vcpkg install tomlplusplus
 
       - name: Build Package
         run: |
