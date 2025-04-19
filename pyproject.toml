@@ -23,9 +23,10 @@ minimum-version = "build-system.requires"
 [tool.cibuildwheel]
 before-all = """
     echo $CIBW_BUILD
-    yum install -y zip
+    # yum install -y zip
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
+    ls vcpkg
     CC=/opt/rh/devtoolset-10/root/usr/bin/gcc CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ /project/vcpkg/vcpkg install
 """
 environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/project/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX", "VCPKG_ROOT" = "/project/vcpkg", "CC" = "/opt/rh/devtoolset-10/root/usr/bin/gcc", "CXX" = "/opt/rh/devtoolset-10/root/usr/bin/g++" }
