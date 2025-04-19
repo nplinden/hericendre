@@ -20,6 +20,9 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 
+[tool.cibuildwheel]
+build = ["*-manylinux_x86_64", "*-macosx_arm64"]
+
 [tool.cibuildwheel.linux]
 before-all = """
     echo $CIBW_BUILD
@@ -30,7 +33,6 @@ before-all = """
 """
 environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/project/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX", "VCPKG_ROOT" = "/project/vcpkg", "CC" = "/opt/rh/devtoolset-10/root/usr/bin/gcc", "CXX" = "/opt/rh/devtoolset-10/root/usr/bin/g++" }
 build-verbosity = 3
-# build = ["*-manylinux_x86_64", "*-macos_arm64"]
 
 [tool.cibuildwheel.macos]
 before-all = """
