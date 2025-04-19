@@ -23,6 +23,13 @@ minimum-version = "build-system.requires"
 [tool.cibuildwheel]
 before-all = """
     yum install -y zip
+    git clone -b v1.12.1 --single-branch  https://github.com/ninja-build/ninja.git
+    cd ninja
+    cmake -Bbuild
+    cmake --build build
+    cd build
+    export PATH=$(pwd):$PATH
+    cd
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     CC=/opt/rh/devtoolset-10/root/usr/bin/gcc CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ /project/vcpkg/vcpkg install
