@@ -20,26 +20,14 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 
-# git clone -b v1.12.1 --single-branch  https://github.com/ninja-build/ninja.git
-# cd ninja
-# cmake -Bbuild
-# cmake --build build
-# cd build
-# export PATH=$(pwd):$PATH
-# cd /project
 [tool.cibuildwheel]
 before-all = """
-    if ldd --version 2>&1 | grep -qi musl; then
-        apk add -y --no-cache zip
-    else
-        yum install -y zip
-    fi
+    echo $CIBW_BUILD
+    yum install -y zip
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     CC=/opt/rh/devtoolset-10/root/usr/bin/gcc CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ /project/vcpkg/vcpkg install
 """
-before-build = "pip install ninja"
 environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/project/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX", "VCPKG_ROOT" = "/project/vcpkg", "CC" = "/opt/rh/devtoolset-10/root/usr/bin/gcc", "CXX" = "/opt/rh/devtoolset-10/root/usr/bin/g++" }
 build-verbosity = 3
-build = ["*-musllinux_x86_64"]
-# skip = "*-manylinux_i686"
+build = ["*-manylinux_x86_64", "*-macos_arm64"]
