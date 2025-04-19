@@ -39,4 +39,4 @@ git clone https://github.com/microsoft/vcpkg.git
 export VCPKG=$(realpath vcpkg/vcpkg)
 $VCPKG install
 """
-environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/project/vcpkg/scripts/buildsystems/vcpkg.cmake" }
+environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/work/hericendre/hericendre/vcpkg/scripts/buildsystems/vcpkg.cmake" }
