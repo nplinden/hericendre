@@ -21,7 +21,7 @@ build-backend = "scikit_build_core.build"
 minimum-version = "build-system.requires"
 
 [tool.cibuildwheel]
-build = ["*-manylinux_x86_64", "*-macosx_arm64"]
+build = ["*-manylinux_x86_64", "*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
 before-all = """
