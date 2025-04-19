@@ -24,6 +24,7 @@ minimum-version = "build-system.requires"
 before-all = """
     echo $CIBW_BUILD
     # yum install -y zip
+    pwd
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     ls vcpkg
