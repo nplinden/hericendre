@@ -8,59 +8,21 @@ on:
 
 jobs:
   build:
-    name: Build wheel on ${{ matrix.os }} for ${{ matrix.python-version }}
+    name: Build wheel on ${{ matrix.os }} 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu-latest", "ubuntu-24.04-arm", "macos-latest", "macos-13"]
-        python-version: ["3.11", "3.12", "3.13"]
+        os: ["ubuntu-latest"]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-  
-      - name: Install vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          ./vcpkg/bootstrap-vcpkg.sh
-
-      - name: Build Package
-        run: |
-          apt update -y && apt install -y cmake
-          export VCPKG_CMAKE="$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          export VCPKG_ROOT="$(pwd)/vcpkg/"
-          python -m pip install --upgrade build
-          python -m build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=$VCPKG_CMAKE
+      - uses: actions/checkout@v4
+      - name: Build Wheels
+        uses: pypa/cibuildwheel@v2.23.2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
-          name: wheel-cp${{ matrix.python-version }}-${{ matrix.os }}
-          path: dist/*.whl
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
 
-  upload:
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Download linux x86 wheel
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          pattern: wheel-cp*
-          merge-multiple: true
-
-      - name: List downloaded artifacts
-        run: ls -lah dist
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with: 
-          name: hericendre-wheels
-          path: dist
           
