@@ -29,7 +29,7 @@ before-all = """
     cmake --build build
     cd build
     export PATH=$(pwd):$PATH
-    cd
+    cd /project
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     CC=/opt/rh/devtoolset-10/root/usr/bin/gcc CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ /project/vcpkg/vcpkg install
