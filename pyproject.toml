@@ -29,7 +29,11 @@ minimum-version = "build-system.requires"
 # cd /project
 [tool.cibuildwheel]
 before-all = """
-    yum install -y zip
+    if ldd --version 2>&1 | grep -qi musl; then
+        apk add -y --no-cache zip
+    else
+        yum install -y zip
+    fi
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     CC=/opt/rh/devtoolset-10/root/usr/bin/gcc CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ /project/vcpkg/vcpkg install
@@ -37,5 +41,5 @@ before-all = """
 before-build = "pip install ninja"
 environment = { "CMAKE_ARGS" = "-DCMAKE_TOOLCHAIN_FILE=/project/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX", "VCPKG_ROOT" = "/project/vcpkg", "CC" = "/opt/rh/devtoolset-10/root/usr/bin/gcc", "CXX" = "/opt/rh/devtoolset-10/root/usr/bin/g++" }
 build-verbosity = 3
-build = ["*-manylinux_x86_64"]
+build = ["*-musllinux_x86_64"]
 # skip = "*-manylinux_i686"
