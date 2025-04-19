@@ -20,11 +20,10 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 
-[tool.cibuildwheel]
+[tool.cibuildwheel.linux]
 before-all = """
     echo $CIBW_BUILD
-    # yum install -y zip
-    pwd
+    yum install -y zip
     git clone https://github.com/microsoft/vcpkg.git 
     ./vcpkg/bootstrap-vcpkg.sh 
     ls vcpkg
