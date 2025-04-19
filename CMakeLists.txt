@@ -25,11 +25,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(inc)
 
-find_package(HighFive CONFIG REQUIRED)
-find_package(Eigen3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
+find_package(HighFive CONFIG REQUIRED)
 
 add_executable(hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
 target_link_libraries(hericendre PRIVATE fmt::fmt HighFive Eigen3::Eigen pugixml tomlplusplus::tomlplusplus)
