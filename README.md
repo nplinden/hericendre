@@ -1,23 +1,28 @@
 # Welcome to Héricendre
 
+A work in progress depletion code, for now supporting radioactive decay with CRAM and analytical solutions.
+
 ## Installation
 
-Héricendre uses [vcpkg](https://vcpkg.io/en/) for dependency management.
-Simply install vcpkg and identify the path to the `vcpkg.cmake` file.
-It should be located in `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake`.
-
-To only build the `hericendre` binary, go to the Héricendre root directory and do:
+You can install Héricendre with `pip`:
 
 ```console
-$ cmake -Bbuild/ -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg.cmake .
-$ cd build
-$ make
+pip install hericendre
 ```
 
-To build the `hericendre` python package:
+This would install the Héricendre binary and library in your python environment directory.
+
+Or add it to your `uv` project:
 
 ```console
-$ uv build -Ccmake.define.CMAKE_TOOLCHAIN_FILE=/path/to/vcpkg.cmake
+uv add hericendre
+```
+
+This makes the Héricendre library available for your project.
+To run the binary simply call
+
+```console
+uv run hericendre
 ```
 
 ## Use
