@@ -2,7 +2,7 @@ name: Build Héricendre
 
 on:
   push:
-    branches: [CI]
+    branches: [vanilla_cmake]
   pull_request:
     branches: [main]
 
@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v4
