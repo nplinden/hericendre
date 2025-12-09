@@ -41,6 +41,7 @@ public:
     std::string resultpath_;
     std::string solvertype_;
     std::vector<double> times_;
+    Chain chain_;
 
 private:
     void readSettings(const toml::table &tbl);
@@ -53,8 +54,6 @@ private:
     std::vector<double> logspace(const std::vector<std::string> &splat) const;
 
     std::string chainpath_;
-
-    Chain chain_;
 
     std::string inputpath_;
     std::string name_;

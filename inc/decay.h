@@ -5,6 +5,7 @@
 #include <pugixml.hpp>
 #include <string>
 #include <vector>
+#include "secondary_particle.h"
 
 class Nuclide;
 using NuclidePtr = std::shared_ptr<Nuclide>;
@@ -21,6 +22,9 @@ public:
 
  Decay(const std::string &type, const std::string &targetName, const double &branchingRatio,
        const NuclidePtr &parent);
+
+bool hasSecondaries() const {return SECONDARIES.find(this->type_) != SECONDARIES.end();}
+Decay getSecondaries() const;
 
  // MEMBER VARIABLES
  /**
@@ -57,7 +61,7 @@ public:
   */
  double branchingRatio_;
 
- static const std::map<std::string, std::vector<std::string> > SECONDARIES;
+ static const std::map<std::string, SecondaryParticle> SECONDARIES;
 };
 
 #endif

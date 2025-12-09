@@ -68,6 +68,12 @@ void Model::readSettings(const toml::table &tbl)
         throw std::runtime_error("No result file was specified");
     }
 
+    std::optional<std::string> save_matrix = tbl["Settings"]["save_matrix"].value<std::string>();
+    if (save_matrix)
+    {
+        this->chain_.save(*save_matrix);
+    }
+
     // SOLVER TYPE
     std::optional<std::string> solver = tbl["Settings"]["solver"].value<std::string>();
     std::set<std::string> allowed_solvers = {"CRAM48", "Decay"};
@@ -242,12 +248,11 @@ std::vector<double> Model::linspace(const std::vector<std::string> &splat) const
 {
     const double start = stod(splat[1]);
     const double stop = stod(splat[2]);
-    const int nstep = stoi(splat[3]);
-    const std::string unit = (splat.size() == 5) ? splat[4] : "s";
+    const int nstep = stoi(splat[3]) - 1;
 
     const double step = (stop - start) / nstep;
     std::vector<double> values;
-    for (int istep = 0; istep < nstep; istep++)
+    for (int istep = 0; istep <= nstep; istep++)
     {
         values.push_back((start + istep * step));
     }
@@ -256,14 +261,13 @@ std::vector<double> Model::linspace(const std::vector<std::string> &splat) const
 
 std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
 {
-    const double start = std::log10(stod(splat[1]));
-    const double stop = std::log10(stod(splat[2]));
-    const int nstep = stoi(splat[3]);
-    const std::string unit = (splat.size() == 5) ? splat[4] : "s";
+    const double start = stod(splat[1]);
+    const double stop = stod(splat[2]);
+    const int nstep = stoi(splat[3]) - 1;
 
     const double step = (stop - start) / nstep;
     std::vector<double> values;
-    for (int istep = 0; istep < nstep; istep++)
+    for (int istep = 0; istep <= nstep; istep++)
     {
         values.push_back((pow(10, start + istep * step)));
     }

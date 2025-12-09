@@ -34,7 +34,7 @@ public:
  // void restrict(std::vector<std::string> nuclides);
  // void removeNuclide(std::string nuc);
 
- bool isIn(const std::string &name) const;
+ bool contains(const std::string &name) const;
 
  /**
   * \brief Returns a pointer to the desired Nuclide object, as defined by
@@ -68,12 +68,7 @@ public:
   */
  size_t nuclide_index(const std::string &name) const;
 
- /**
-  * \brief Dump the decay matrix to a csv file.
-  *
-  * \param path: Path of the file to write the matrix in.
-  */
- void dump_matrix(const std::string &path) const;
+ void save(const std::string &path) const;
 
  /**
   * \brief An implementation of depth first search algorithm to find all

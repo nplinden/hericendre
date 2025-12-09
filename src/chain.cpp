@@ -5,71 +5,52 @@
 #include <fmt/core.h>
 #include <fmt/os.h>
 #include <fmt/ranges.h>
+#include <highfive/H5Easy.hpp>
 
 Chain::Chain(const std::string &path) : Chain(path.c_str()) {
 }
 
 Chain::Chain(const char *path) {
-    // fmt::print("entering Chain\n");
     pugi::xml_document doc;
-    doc.load_file(path);
-    const pugi::xml_node chainxml = doc.child("depletion_chain");
+    pugi::xml_parse_result results = doc.load_file(path);
+    if (!results) {
+        std::string err_msg = fmt::format("Failed to load depletion chain file {} ({})", path, results.description());
+        throw std::runtime_error(err_msg);
+    }
 
-    // INTIALIZATION STEP
-    // std::cout << "Initialization:\n";
-    for (pugi::xml_node nuclide = chainxml.child("nuclide"); nuclide;
-         nuclide = nuclide.next_sibling("nuclide")) {
+    const pugi::xml_node root = doc.child("depletion_chain");
+    if (!root) {
+        std::string err_msg = fmt::format("File {} is not a valid depletion chain file", path);
+        throw std::runtime_error(err_msg);
+    }
+
+    /*
+    The chain is built in two steps to allow for nuclide to be referenced
+    before they are defined in the xml file.
+    */
+
+    // Initialization step
+    // This step adds all nuclides and decay reactions to the chain object.
+    size_t nuclide_count = std::distance(root.children("nuclide").begin(), root.children("nuclide").end());
+    nuclides_.reserve(nuclide_count);
+    for (pugi::xml_node nuclide: root.children("nuclide")){
+
         nuclides_.push_back(std::make_shared<Nuclide>(Nuclide(nuclide)));
-
         nuclides_.back()->idInChain = nuclides_.size() - 1;
-        for (pugi::xml_node decayNode = nuclide.child("decay"); decayNode;
-             decayNode = decayNode.next_sibling("decay")) {
-            decays_.push_back(
-                std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
 
-            std::string type = decays_.back()->type_;
-            const double br = decays_.back()->branchingRatio_;
-            if (Decay::SECONDARIES.find(type) != Decay::SECONDARIES.end()) {
-                auto secVector = Decay::SECONDARIES.at(type);
-                std::map<std::string, double> multiplicities;
-                for (const auto &target: secVector) {
-                    if (multiplicities.find(target) != multiplicities.end()) {
-                        multiplicities[target] += br;
-                    } else {
-                        multiplicities[target] = br;
-                    }
-                }
+        for (pugi::xml_node decayNode: nuclide.children("decay")) {
+            decays_.push_back(std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
 
-                for (const auto &[k, v]: multiplicities) {
-                    if (this->isIn(k)) {
-                        decays_.push_back(std::make_shared<Decay>(
-                            Decay(type, k, v, nuclides_.back())));
-                    }
-                }
+            if (decays_.back()->hasSecondaries()) {
+                decays_.push_back(std::make_shared<Decay>(decays_.back()->getSecondaries()));
             }
         }
-        // for (pugi::xml_node reactionNode = nuclide.child("reaction");
-        // reactionNode;
-        //      reactionNode = reactionNode.next_sibling("reaction")) {
-        //   if (reactionNode.attribute("type").value() != std::string("fission")) {
-        //     reactions_.push_back(std::make_shared<NReaction>(
-        //         NReaction(reactionNode, nuclides_.back())));
-        //   }
-        // }
-
-        // for (pugi::xml_node nfyNode = nuclide.child("neutron_fission_yields");
-        //      nfyNode; nfyNode = nfyNode.next_sibling("neutron_fission_yields")) {
-        //   fissions_.push_back(
-        //       std::make_shared<Fission>(Fission(nfyNode, nuclides_.back())));
-        // }
     }
-    // std::cout << "\t" << nuclides_.size() << " nuclides found\n";
-    // std::cout << "\t" << decays_.size() << " decay reactions found\n";
-    // std::cout << "\t" << reactions_.size() << " neutron reactions found\n";
-    // std::cout << "\t" << fissions_.size() << " fissions found\n";
 
-    // std::cout << "Binding decays\n";
-    // BINDING STEP
+    // Binding step
+    /*
+    The binding step connects decay targets to the corresponding decay object.
+    */
     for (auto &dec: decays_) {
         dec->parent_->decays_.push_back(dec);
         if (!dec->targetName_.empty()) {
@@ -77,34 +58,6 @@ Chain::Chain(const char *path) {
             dec->target_->decaysUp_.push_back(dec);
         }
     }
-
-    // std::cout << "Binding reaction\n";
-    // for (auto &reac : reactions_) {
-    //   reac->parent_->reactions_.push_back(reac);
-    //   if (!reac->targetName_.empty())
-    //     reac->target_ = this->find(reac->targetName_);
-    //   reac->target_->reactionsUp_.push_back(reac);
-    // }
-
-    // for (auto& nuc : nuclides_){
-    //   if (!nuc->nfyParent_.empty()){
-    //     NuclidePtr target = this->find(nuc->nfyParent_) ;
-    //     nuc->neutronFissionYields_ = target->neutronFissionYields_ ;
-    //   }
-    // }
-
-    // std::cout << "Check...";
-    // // COHERENCE CHECK
-    // for (auto &n : nuclides_) {
-    //   if (n->ndecay_ != n->decays_.size())
-    //     throw std::invalid_argument(
-    //         fmt::format("{} {} {}", n->name_, n->ndecay_, n->decays_.size()));
-    //   if (n->nreac_ != n->reactions_.size())
-    //     throw std::invalid_argument(
-    //         fmt::format("{} {} {}", n->name_, n->nreac_,
-    //         n->reactions_.size()));
-    // }
-    // std::cout << "done" << std::endl;
 }
 
 Chain::Chain() = default;
@@ -119,11 +72,13 @@ bool Chain::write(const char *path) {
     return doc.save_file(path, "  ");
 }
 
-bool Chain::isIn(const std::string &name) const {
-    return std::any_of(
-        nuclides_.begin(),
-        nuclides_.end(),
-        [name](const NuclidePtr &p) { return name == p->name_; });
+bool Chain::contains(const std::string &name) const {
+    for (const auto &p: nuclides_) {
+        if (name == p->name_) {
+            return true;
+        }
+    }
+    return false;
 }
 
 NuclidePtr Chain::find(int nucid) const {
@@ -170,19 +125,24 @@ size_t Chain::nuclide_index(const std::string &name) const {
 }
 
 Eigen::SparseMatrix<double> Chain::decayMatrix() const {
+    
+    // eigen triplets are (row, col, value)
+    const size_t n = nuclides_.size();
     std::vector<Eigen::Triplet<double> > triplets;
-    triplets.reserve(10000);
-    for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++) {
-        const NuclidePtr nuc = this->nuclides_[inuc];
+    triplets.reserve(n + 3*n); // rough estimate
+
+    for (size_t inuc = 0; inuc < n; inuc++) {
+        const NuclidePtr& nuc = nuclides_[inuc];
         triplets.emplace_back(inuc, inuc, -nuc->dconst_);
+
         for (const auto &d: nuc->decays_) {
-            if (!d->targetName_.empty()) {
-                size_t jnuc = this->nuclide_index(d->targetName_);
+            if (d->target_) {
+                const size_t jnuc = d->target_->idInChain;
                 triplets.emplace_back(jnuc, inuc, nuc->dconst_ * d->branchingRatio_);
             }
         }
     }
-    Eigen::SparseMatrix<double> M(this->nuclides_.size(), this->nuclides_.size());
+    Eigen::SparseMatrix<double> M(n, n);
     M.setFromTriplets(triplets.begin(), triplets.end());
     M.makeCompressed();
     return M;
@@ -265,42 +225,43 @@ bool Chain::topological_sort() {
 }
 
 void Chain::tweak_dconst() {
-    std::vector<double> dconsts;
+    // Group nuclides by decay constant
     std::map<double, std::vector<NuclidePtr> > duplicates;
-    for (const auto &nuclide: this->nuclides_) {
+    for (const auto &nuclide: nuclides_) {
         duplicates[nuclide->dconst_].push_back(nuclide);
     }
-    for (auto const &[key, val]: duplicates) {
-        if (val.size() > 1) {
-            for (size_t i = 0; i < val.size(); i++) {
-                val[i]->dconst_ *= pow((1 + 1e-14), i);
+
+    // Add small perturbations to decay constants
+    for (auto const &[_, nuclides]: duplicates) {
+        if (nuclides.size() > 1) {
+            for (size_t i = 0; i < nuclides.size(); i++) {
+                nuclides[i]->dconst_ *= std::pow((1 + 1e-14), i);
             }
         }
     }
 }
 
-void Chain::dump_matrix(const std::string &path) const {
-    Eigen::MatrixXd dMat(this->decayMatrix());
-    // fmt::print("size = [{}, {}]\n", dMat.rows(), dMat.cols());
+void Chain::save(const std::string &path) const {
+    Eigen::SparseMatrix<double> dMat(this->decayMatrix());
 
-    auto out = fmt::output_file(path);
-    out.print(",");
-    for (size_t inuc = 0; inuc < this->nuclides_.size(); inuc++) {
-        out.print("{}", this->nuclides_[inuc]->name_);
-        if (inuc < this->nuclides_.size() - 1)
-            out.print(",");
-    }
-    out.print("\n");
-    for (long int row = 0; row < dMat.rows(); row++) {
-        out.print("{},", this->nuclides_[row]->name_);
-        for (long int col = 0; col < dMat.cols(); col++) {
-            out.print("{}", dMat(row, col));
-            if (col < dMat.cols() - 1)
-                out.print(",");
+    std::vector<Eigen::Triplet<double>> triplets;
+    std::vector<size_t> rows;
+    std::vector<size_t> cols;
+    std::vector<double> values;
+
+    triplets.reserve(dMat.nonZeros());
+
+    for (int k = 0; k < dMat.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(dMat, k); it; ++it) {
+            rows.push_back(it.row());
+            cols.push_back(it.col());
+            values.push_back(it.value());
         }
-        out.print("\n");
     }
-    out.close();
+    H5Easy::File file(path, H5Easy::File::Overwrite);
+    H5Easy::dump(file, "ROW", rows);
+    H5Easy::dump(file, "COL", cols);
+    H5Easy::dump(file, "VALUES", values);
 }
 
 std::vector<std::string> Chain::name_vector() const {
@@ -318,25 +279,3 @@ std::vector<double> Chain::dconst_vector() const {
         vec.push_back(nuclide->dconst_);
     return vec;
 }
-
-// void Chain::removeNuclide(std::string nuc) {}
-
-// void Chain::restrict(std::vector<std::string> allowed) {
-// std::vector<NuclidePtr> newNuclides ;
-// for (auto& nuc : nuclides_){
-//   if (std::find(allowed.begin(), allowed.end(), nuc->name_) !=
-//   allowed.end()){
-//     newNuclides.push_back(nuc) ;
-//   }
-// }
-
-// std::vector<DecayPtr> newDecays ;
-// for (auto& decay : decays_){
-//   bool parentOk = std::find(allowed.begin(), allowed.end(),
-//   decay->parentName_) != allowed.end() ; bool targetOk =
-//   std::find(allowed.begin(), allowed.end(), decay->targetName_) !=
-//   allowed.end() ; if (parentOk && targetOk){
-//     newDecays.push_back(decay) ;
-//   }
-// }
-// }
