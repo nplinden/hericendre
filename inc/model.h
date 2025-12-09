@@ -1,5 +1,5 @@
-#ifndef INPUT_HPP_INCLUDE
-#define INPUT_HPP_INCLUDE
+#ifndef MODEL_HPP_INCLUDE
+#define MODEL_HPP_INCLUDE
 #include <map>
 #include <string>
 #include <vector>
@@ -36,8 +36,6 @@ public:
     std::string chainpath() const;
 
     void set_chainpath(const std::string &chainpath);
-
-    std::string inputpath() const;
 
     std::map<std::string, double> initcc_;
     std::string resultpath_;

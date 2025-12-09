@@ -14,13 +14,26 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         fmt::print("[ERROR] No input file was provided! Exiting.\n");
-        return 0;
+        return EXIT_FAILURE;
     }
 
     std::string inputPath(argv[1]);
-    Model inputModel(inputPath);
-    inputModel.summarize();
-    inputModel.run();
+    
+    Model model;
+    try {
+        model = Model(inputPath);
+        model.summarize();
+    } catch (const std::exception &e) {
+        fmt::print(stderr, "[ERROR] Failed to initialize model: {}\n", e.what());
+        return EXIT_FAILURE;
+    }
+    
+    try {
+        model.run();
+    } catch (const std::exception &e) {
+        fmt::print(stderr, "[ERROR] Simulation run failed: {}\n", e.what());
+        return EXIT_FAILURE;
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

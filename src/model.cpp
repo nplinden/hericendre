@@ -40,18 +40,24 @@ Model::Model() = default;
 
 void Model::readSettings(const toml::table &tbl)
 {
+    // DEPLETION CHAIN
     std::optional<std::string> chainpath = tbl["Settings"]["chain"].value<std::string>();
     if (chainpath)
     {
         chainpath_ = *chainpath;
+        const std::filesystem::path p{chainpath_};
+        if (!std::filesystem::exists(p)) {
+            std::string msg = fmt::format("Depletion chain file {} does not exist", chainpath_);
+            throw std::runtime_error(msg);
+        }
         this->chain_ = Chain(chainpath_.c_str());
     }
     else
     {
-        fmt::print("[ERROR] No depletion chain file was specified\n");
         throw std::runtime_error("No depletion chain file was specified");
     }
 
+    // RESULT PATH
     std::optional<std::string> resultpath = tbl["Settings"]["results"].value<std::string>();
     if (resultpath)
     {
@@ -59,10 +65,10 @@ void Model::readSettings(const toml::table &tbl)
     }
     else
     {
-        fmt::print("[ERROR] No result file was specified\n");
         throw std::runtime_error("No result file was specified");
     }
 
+    // SOLVER TYPE
     std::optional<std::string> solver = tbl["Settings"]["solver"].value<std::string>();
     std::set<std::string> allowed_solvers = {"CRAM48", "Decay"};
     if (!solver)
@@ -76,8 +82,8 @@ void Model::readSettings(const toml::table &tbl)
     }
     else
     {
-        fmt::print("[ERROR] Invalid solver type \"{}\", allowed solver: {}\n", *solver, fmt::join(allowed_solvers, ", "));
-        throw std::runtime_error("Invalid solver type");
+        std::string msg = fmt::format("Invalid solver type \"{}\", allowed solver: {}", *solver, fmt::join(allowed_solvers, ", "));
+        throw std::runtime_error(msg);
     }
 }
 
@@ -87,7 +93,6 @@ void Model::readTime(const toml::table &tbl)
     auto timestamps = tbl["Time"]["timestamps"].as_array();
     if (!timestamps)
     {
-        fmt::print("[ERROR] No timestamps provided\n");
         throw std::runtime_error("No timestamps provided");
     }
     else
@@ -112,7 +117,6 @@ void Model::readTime(const toml::table &tbl)
             }
             else
             {
-                fmt::print("[ERROR] Invalid type in timestamps definition\n");
                 throw std::runtime_error("Invalid type in timestamps definition");
             }
         }
@@ -129,7 +133,6 @@ void Model::readTime(const toml::table &tbl)
         auto unit_name = *units.value<std::string>();
         if (TIME_UNITS.find(unit_name) == TIME_UNITS.end())
         {
-            fmt::print("[ERROR] Invalid unit name\n");
             throw std::runtime_error("Invalid unit name");
         }
         else
@@ -144,8 +147,7 @@ void Model::readTime(const toml::table &tbl)
         auto name = unit_table["name"];
         if (!name || !name.is<std::string>())
         {
-            fmt::print("[ERROR] Invalid time unit name.\n");
-            throw std::runtime_error("[ERROR] Invalid time unit name.");
+            throw std::runtime_error("Invalid time unit name.");
         }
         else
         {
@@ -154,8 +156,7 @@ void Model::readTime(const toml::table &tbl)
         auto magnitude = unit_table["magnitude"];
         if (!magnitude)
         {
-            fmt::print("[ERROR] Invalid time unit magnitude.\n");
-            throw std::runtime_error("[ERROR] Invalid time unit magnitude.");
+            throw std::runtime_error("Invalid time unit magnitude.");
         }
         else if (magnitude.is<double>() || magnitude.is<int64_t>())
         {
@@ -163,13 +164,11 @@ void Model::readTime(const toml::table &tbl)
         }
         else
         {
-            fmt::print("[ERROR] Invalid time unit magnitude.\n");
-            throw std::runtime_error("[ERROR] Invalid time unit magnitude.");
+            throw std::runtime_error("Invalid time unit magnitude.");
         }
     }
     else
     {
-        fmt::print("[ERROR] Time unit must be either a string or a table.\n");
         throw std::runtime_error("Time unit must be either a string or a table.");
     }
 
@@ -180,14 +179,8 @@ void Model::readTime(const toml::table &tbl)
 
     if (!std::is_sorted(this->times_.begin(), this->times_.end()))
     {
-        fmt::print("[ERROR] Time vector is not sorted.\n");
         throw std::runtime_error("Time vector is not sorted.");
     }
-
-    // for (const double &t : this->times_)
-    // {
-    //     fmt::print("{}\n", t);
-    // }
 }
 
 void Model::readMaterial(const toml::table &tbl)
@@ -196,8 +189,7 @@ void Model::readMaterial(const toml::table &tbl)
     auto concentrations = tbl["Material"]["concentrations"].as_table();
     if (concentrations && uniform)
     {
-        fmt::print("[ERROR] uniform and concentration can't be defined at the same time\n");
-        throw std::runtime_error(fmt::format("uniform and concentration can't be defined at the same time"));
+        throw std::runtime_error("uniform and concentration can't be defined at the same time");
     }
     else if (uniform)
     {
@@ -211,8 +203,7 @@ void Model::readMaterial(const toml::table &tbl)
             auto conc = nuclide.second.value<double>();
             if (!conc)
             {
-                fmt::print("[ERROR] Concentration as non number value\n");
-                throw std::runtime_error(fmt::format("Concentration as non number value"));
+                throw std::runtime_error("Concentration must be a number");
             }
             else
             {
@@ -220,15 +211,13 @@ void Model::readMaterial(const toml::table &tbl)
             }
         }
     }
-
-    // auto unit_table = *units.as_table();
 }
+
 std::vector<double> Model::compute_time_function(const std::string &str)
 {
     std::vector<std::string> splat = split(str);
     if (splat.size() < 4)
     {
-        fmt::print("[ERROR] Invalid time function in timestamps definition");
         throw std::runtime_error("Invalid time function in timestamps definition");
     }
     else
@@ -244,7 +233,6 @@ std::vector<double> Model::compute_time_function(const std::string &str)
         }
         else
         {
-            fmt::print("[ERROR] Invalid time function in timestamps definition");
             throw std::runtime_error("Invalid time function in timestamps definition");
         }
     }
@@ -284,7 +272,6 @@ std::vector<double> Model::logspace(const std::vector<std::string> &splat) const
 
 void Model::run()
 {
-    // H5Easy::File file("results.h5", H5Easy::File::Overwrite);
     Results results;
     if (solvertype_ == "Decay")
     {
