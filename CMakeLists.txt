@@ -2,27 +2,37 @@ cmake_minimum_required(VERSION 3.22)
 
 project(Hericendre VERSION 0.1)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Find system HDF5
+find_package(HDF5 REQUIRED COMPONENTS C)
+
+# Try to find system Eigen3, otherwise fetch it
+find_package(Eigen3 3.4 QUIET NO_MODULE)
 
 # Enable FetchContent module
 include(FetchContent)
 
-# Fetch Eigen3.4
-message("Fetching Eigen 3.4")
-FetchContent_Declare(
-  eigen
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-  GIT_TAG        3.4.0
-  GIT_SHALLOW TRUE
-  GIT_PROGRESS TRUE
-  EXCLUDE_FROM_ALL
-)
-set(BUILD_TESTING OFF)
-set(EIGEN_TEST_NOQT ON)
-set(EIGEN_BUILD_CMAKE_PACKAGE OFF)
-FetchContent_MakeAvailable(eigen)
+if(NOT Eigen3_FOUND)
+    # Fetch Eigen3.4
+    message("Eigen3 not found, fetching Eigen 3.4")
+    FetchContent_Declare(
+      eigen
+      GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+      GIT_TAG        3.4.0
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
+      EXCLUDE_FROM_ALL
+    )
+    set(BUILD_TESTING OFF)
+    set(EIGEN_TEST_NOQT ON)
+    set(EIGEN_BUILD_CMAKE_PACKAGE OFF)
+    FetchContent_MakeAvailable(eigen)
+else()
+    message("Using system Eigen3: ${Eigen3_DIR}")
+endif()
 
 # Fetch fmt 10.2
 message("Fetching fmt 10.2")
@@ -55,35 +65,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
-
-# Get HDF5
-message(STATUS "Downloading HDF5 v1.14.3")
-set(HDF5_ENABLE_Z_LIB_SUPPORT OFF)
-set(HDF5_EXTERNALLY_CONFIGURED  1)
-set(HDF5_ENABLE_SZIP_SUPPORT  OFF)
-set(HDF5_BUILD_EXAMPLES       OFF)
-set(HDF5_BUILD_TOOLS          OFF)
-set(HDF5_BUILD_UTILS          OFF)
-set(HDF5_BUILD_HL_LIB         OFF)
-set(BUILD_SHARED_LIBS         OFF)
-FetchContent_Declare(hdf5
-  GIT_REPOSITORY https://github.com/HDFGroup/hdf5.git
-  GIT_TAG        hdf5-1_14_3
-  EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable(hdf5)
-
 # Fetch HighFive
-message("Fetching Highfive 2.10")
+message("Fetching Highfive 3.2.0")
 set(HIGHFIVE_UNIT_TESTS OFF)
 set(HIGHFIVE_TEST_SPAN OFF)
 set(HIGHFIVE_EXAMPLES OFF)
 set(HIGHFIVE_BUILD_DOCS OFF)
-set(HIGHFIVE_FIND_HDF5 OFF)
+set(HIGHFIVE_USE_BOOST OFF)
 FetchContent_Declare(
   highfive
   GIT_REPOSITORY https://github.com/highfive-devs/highfive.git
-  GIT_TAG        v2.10.0
+  GIT_TAG        v3.2.0
 )
 FetchContent_MakeAvailable(highfive)
 
@@ -112,6 +104,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include_directories(inc)
 
 add_executable(hericendre src/main.cpp ${HERICENDRE_SOURCE_LIST})
-target_link_libraries(hericendre PRIVATE fmt::fmt hdf5-static HighFive Eigen3::Eigen pugixml tomlplusplus::tomlplusplus)
+target_link_libraries(hericendre PRIVATE fmt::fmt HDF5::HDF5 HighFive Eigen3::Eigen pugixml tomlplusplus::tomlplusplus)
 
 install(TARGETS hericendre DESTINATION ${SKBUILD_SCRIPTS_DIR})

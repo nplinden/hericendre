@@ -12,7 +12,6 @@ dependencies = [
     "polars>=1.26.0",
 ]
 
-
 [build-system]
 requires = ["scikit-build-core>=0.10"]
 build-backend = "scikit_build_core.build"
@@ -21,8 +20,19 @@ build-backend = "scikit_build_core.build"
 minimum-version = "build-system.requires"
 
 [tool.cibuildwheel]
-build = ["*-manylinux_x86_64", "*-macosx_arm64", "*-macosx_x86_64"]
+build = "cp3{11,12,13}-*"
+skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*"]
+build-verbosity = 1
+test-command = "python -c 'import hericendre; print(hericendre.__file__)'"
+test-requires = ["pytest"]
 
 [tool.cibuildwheel.linux]
-environment = { "CMAKE_ARGS" = "-DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX", "CC" = "/opt/rh/devtoolset-10/root/usr/bin/gcc", "CXX" = "/opt/rh/devtoolset-10/root/usr/bin/g++" }
-build-verbosity = 3
+before-all = [
+    "yum install -y zlib-devel hdf5-devel",
+]
+environment = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
+
+[dependency-groups]
+dev = [
+    "cibuildwheel>=3.3.0",
+]
