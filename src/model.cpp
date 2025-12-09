@@ -286,8 +286,7 @@ void Model::run()
     else if (solvertype_ == "CRAM48")
     {
         CRAMSolver solver;
-        solver.run(chain_, initcc_, times_);
-        results = solver.results_;
+        results = solver.run(chain_, initcc_, times_);
     }
     else
     {

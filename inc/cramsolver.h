@@ -11,59 +11,82 @@ using cdouble = std::complex<double>;
 using SpComplex = Eigen::SparseMatrix<cdouble>;
 using TrComplex = Eigen::Triplet<cdouble>;
 
+/**
+ * @brief Chebyshev Rational Approximation Method (CRAM) solver for depletion equations
+ * 
+ * This class implements the CRAM-48 algorithm for solving the Bateman equations,
+ * which describe radioactive decay and transmutation chains. CRAM-48 uses a 48th-order
+ * rational approximation with complex poles to accurately compute the matrix exponential
+ * exp(M*t), where M is the decay/transmutation matrix.
+ * 
+ * The CRAM method is highly accurate for stiff systems and is particularly well-suited
+ * for nuclear depletion problems where decay constants can span many orders of magnitude.
+ * 
+ * Reference: M. Pusa, "Rational Approximations to the Matrix Exponential in Burnup Calculations"
+ */
 class CRAMSolver {
 public:
  CRAMSolver();
 
  /**
-  * \brief Solve the Bateman equation for all provided times in
-  * seconds with an initial composition defined by a map.
+  * @brief Solve depletion for multiple time steps with initial concentrations from a map
   *
-  * \param chain: The chain to deplete with.
-  * \param ccMap: A vector of initial concentration. Length of the vector
-  * should match the length of the chain's nuclides attribute.
-  * \param times: The length of the time step in seconds.
-  * concentration should be rounded to zero. default = 0.
+  * Solves the Bateman equations from t=0 through all provided time points.
+  * Initial concentrations are specified by nuclide name. Nuclides not in the map
+  * are initialized to zero.
+  *
+  * @param chain The depletion chain containing nuclides and decay data
+  * @param ccMap Initial concentrations as a map: ccMap["U235"] = 1.0
+  * @param times Time points (in seconds) at which to compute concentrations
+  * @return Results object containing concentrations at all time points
   */
- std::vector<Eigen::VectorXd> run(const Chain &chain,
+ Results run(const Chain &chain,
                                   const std::map<std::string, double> &ccMap,
                                   const std::vector<double> &times);
 
  /**
-  * \brief Solve the Bateman equation for all provided times in
-  * seconds with an initial composition defined by a vector.
+  * @brief Solve depletion for multiple time steps with initial concentrations from a vector
   *
-  * \param chain: The chain to deplete with.
-  * \param ccVector: A map of initial concentration in the ccMap["nuclide"] =
-  * concentration format
-  * \param times: The length of the time step in seconds.
+  * Solves the Bateman equations from t=0 through all provided time points.
+  * Initial concentrations are provided as an Eigen vector matching the chain nuclide order.
+  *
+  * @param chain The depletion chain containing nuclides and decay data
+  * @param ccVector Initial concentration vector (length must match chain size)
+  * @param times Time points (in seconds) at which to compute concentrations
+  * @return Results object containing concentrations at all time points
   */
- std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd &ccVector,
-                                  std::vector<double> times);
+ Results run(const Chain &chain, const Eigen::VectorXd &ccVector,
+                                  const std::vector<double> &times);
 
  /**
-  * \brief Cutoff value under which a concentration should be rounded to zero.
+  * @brief Concentration cutoff threshold for numerical stability
   *
+  * Concentrations below this value are set to zero after each time step.
+  * This prevents numerical noise from accumulating in very small concentrations.
+  * Default: 1e-10
   */
  double cutoff_ = 1.e-10;
- Results results_;
 
 private:
  /**
-  * \brief Solve the Bateman equation on a timestep of size dt seconds with an
-  * initial composition defined by a map.
+  * @brief Core CRAM-48 solver for a single time step
   *
-  * \param chain: The chain to deplete with.
-  * \param ccVector: A vector of initial concentration. Length of the vector
-  * should match the length of the chain's nuclides attribute.
-  * \param dt: The length of the time step in seconds.
+  * Computes the solution to dN/dt = M*N over a single time interval dt
+  * using the 48th-order Chebyshev Rational Approximation Method.
+  *
+  * @param M Pre-computed decay/transmutation matrix (complex sparse)
+  * @param ccVector Initial concentration vector at time t
+  * @param dt Time step size in seconds
+  * @return Concentration vector at time t+dt
   */
- std::vector<Eigen::VectorXd> run(const Chain &chain, const Eigen::VectorXd &ccVector,
+ Eigen::VectorXd run(const SpComplex &M, const Eigen::VectorXd &ccVector,
                                   double dt) const;
 
  /**
-  * \brief theta_i tabulated values for CRAM-48
+  * @brief Complex poles (theta_i) for CRAM-48 approximation
   *
+  * These are the 24 complex conjugate pole pairs used in the partial fraction
+  * expansion of the (16,16) Padé approximation to exp(z).
   */
  std::vector<cdouble> theta48 = {
   cdouble(-4.465731934165702e+1, +6.233225190695437e+1),
@@ -93,8 +116,10 @@ private:
  };
 
  /**
-  * \brief alpha_i tabulated values for CRAM-48
+  * @brief Complex residues (alpha_i) for CRAM-48 approximation
   *
+  * These are the 24 complex conjugate residue pairs corresponding to the poles
+  * in theta48. Together with theta48, they define the rational approximation.
   */
  std::vector<cdouble> alpha48 = {
   cdouble(+6.387380733878774e+2, -6.743912502859256e+2),
@@ -124,8 +149,10 @@ private:
  };
 
  /**
-  * \brief alpha_0 tabulated values for CRAM-48
+  * @brief Scalar coefficient (alpha_0) for CRAM-48 approximation
   *
+  * This is the real scalar term in the CRAM-48 partial fraction expansion.
+  * It scales the final result after all complex pole contributions are summed.
   */
  double alpha48_0 = 2.258038182743983e-47;
 };
