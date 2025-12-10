@@ -6,153 +6,177 @@
 
 using msd = std::map<size_t, double>;
 
-DecaySolver::DecaySolver(Chain& chain) {
-    chain_ = chain;
+DecaySolver::DecaySolver(Chain &chain)
+{
+  chain_ = chain;
 };
 
-void DecaySolver::compute_coeffs(std::map<std::string, double> ccMap) {
-  ccMap_ = ccMap;
+void DecaySolver::compute_coeffs(std::map<std::string, double> ccMap)
+{
   if (!chain_.topological_sort())
+  {
     throw std::invalid_argument("Chain cannot be topologically sorted");
+  }
   chain_.tweak_dconst();
   Eigen::SparseMatrix<double> matrix = chain_.decayMatrix();
 
-  for (size_t inuc = 0; inuc < chain_.nuclides_.size(); inuc++) {
-    const auto nuclide = chain_.nuclides_[inuc];
-    double Cii = nuclide->dconst_;
-
-    if (Cii != 0.) {
-      // UNSTABLE NUCLIDE CASE
-      // COMPUTING Ns(i)
-      for (const auto &decay: nuclide->decaysUp_) {
-        const double br = decay->branchingRatio_;
-        const double dconst = decay->parent_->dconst_;
-        const double Cik = br * dconst;
-        Ns[nuclide->idInChain] += Cik * Ns[decay->parent_->idInChain] / Cii;
-      }
-
-      // COMPUTING Fik
-      for (size_t knuc = 0; knuc < inuc; knuc++) {
-        double Ckk = chain_.nuclides_[knuc]->dconst_;
-        double factor = 1 / (Cii - Ckk);
-        for (const auto &decay: nuclide->decaysUp_) {
-          size_t jnuc = decay->parent_->idInChain;
-          if (jnuc >= knuc) {
-            const double Cij = decay->parent_->dconst_ * decay->branchingRatio_;
-            auto jmap = atWithDefault<size_t, msd>(F, jnuc, msd());
-            double kval = atWithDefault<size_t, double>(jmap, knuc, 0.);
-            if (const double val = Cij * kval * factor; val != 0.)
-              F[inuc][knuc] += val;
-          }
-        }
-      }
-
-      // COMPUTING Fii
-      if (double val = ccMap[nuclide->name_] - Ns[nuclide->idInChain]; val != 0.)
-        F[inuc][inuc] = val;
-      for (size_t jnuc = 0; jnuc < inuc; jnuc++) {
-        auto imap = atWithDefault<size_t, msd>(F, inuc, msd());
-        double jval = atWithDefault<size_t, double>(imap, jnuc, 0.);
-        if (jval != 0.)
-          F[inuc][inuc] -= jval;
-      }
-    } else {
-      // STABLE NUCLIDE CASE
-      // COMPUTING Fii
-      for (const auto &decay: nuclide->decaysUp_) {
-        size_t jnuc = decay->parent_->idInChain;
-        double Cij = decay->branchingRatio_ * decay->parent_->dconst_;
-        if (double val = Cij * Ns[jnuc]; val != 0.)
-          F[inuc][inuc] += val;
-      }
-
-      // COMPUTING Fik
-      for (size_t knuc = 0; knuc < inuc; knuc++) {
-        double Ckk = chain_.nuclides_[knuc]->dconst_;
-        if (Ckk == 0)
-          continue;
-        double factor = 1 / (Cii - Ckk);
-        for (const auto &decay: nuclide->decaysUp_) {
-          size_t jnuc = decay->parent_->idInChain;
-          if (jnuc >= knuc) {
-            double Cij = decay->parent_->dconst_ * decay->branchingRatio_;
-            auto jmap = atWithDefault<size_t, msd>(F, jnuc, msd());
-            double kval = atWithDefault<size_t, double>(jmap, knuc, 0.);
-            if (kval != 0.)
-              F[inuc][knuc] += Cij * kval * factor;
-          }
-        }
-      }
-
-      // COMPUTING Ns(i)
-      Ns[inuc] = ccMap[nuclide->name_];
-      for (size_t knuc = 0; knuc < inuc; knuc++) {
-        auto imap = atWithDefault<size_t, msd>(F, inuc, msd());
-        double kval = atWithDefault<size_t, double>(imap, knuc, 0.);
-        if (kval != 0.)
-          Ns[inuc] -= kval;
-      }
-    }
+  for (const NuclidePtr nuclide : chain_.nuclides_)
+  {
+    compute_Fik(nuclide);
+    compute_Ns(nuclide, ccMap);
+    compute_Fii(nuclide, ccMap);
   }
 }
 
-std::vector<std::vector<double> >
+Results
 DecaySolver::run(const std::map<std::string, double> &ccMap,
-                 std::vector<double> times) {
+                 std::vector<double> times)
+{
   const size_t nt = times.size();
   const size_t nn = chain_.nuclides_.size();
   this->compute_coeffs(ccMap);
-  std::vector<std::vector<double> > N(nt, std::vector<double>(nn, 0));
-  for (auto const &[key, val]: ccMap) {
-    const size_t inuc = chain_.nuclide_index(key);
-    N[0][inuc] = val;
+  std::vector<std::vector<double>> N(nt, std::vector<double>(nn, 0));
+  for (auto const &[key, val] : ccMap)
+  {
+    const size_t i = chain_.nuclide_index(key);
+    N[0][i] = val;
   }
 
-  for (size_t it = 1; it < nt; it++) {
+  for (size_t it = 1; it < nt; it++)
+  {
     fmt::print("{:.4e} -> {:.4e}\n", times[it - 1], times[it]);
-    for (size_t inuc = 0; inuc < nn; inuc++) {
-      auto imap = atWithDefault(F, inuc, msd());
-      N[it][inuc] += Ns[inuc];
-      for (const auto &[jnuc, Fij]: imap) {
-        if (inuc == jnuc && chain_.nuclides_[inuc]->dconst_ == 0)
+    for (size_t i = 0; i < nn; i++)
+    {
+      N[it][i] += Ns[i];
+
+      auto Fi = F.find(i);
+      if (Fi == F.end())
+        continue;
+
+      for (const auto &[j, Fij] : Fi->second)
+      {
+        if (i == j && chain_.nuclides_[i]->dconst_ == 0)
           continue;
-        N[it][inuc] += Fij * std::exp(-chain_.nuclides_[jnuc]->dconst_ * times[it]);
+        N[it][i] += Fij * std::exp(-chain_.nuclides_[j]->dconst_ * times[it]);
       }
-      if (chain_.nuclides_[inuc]->dconst_ == 0)
-        N[it][inuc] += atWithDefault(imap, inuc, 0.) * times[it];
+
+      auto Fii_it = Fi->second.find(i);
+      if (Fii_it != Fi->second.end())
+        continue;
+
+      double Fii = Fii_it->second;
+      if (chain_.nuclides_[i]->dconst_ == 0)
+        N[it][i] += Fii * times[it];
     }
   }
 
   std::vector<std::string> nuclidenames;
-  for (const auto &nuclide: chain_.nuclides_)
+  for (const auto &nuclide : chain_.nuclides_)
     nuclidenames.push_back(nuclide->name_);
-  fmt::print("times.size()={}\n", times.size());
-  fmt::print("nuclidenames.size()={}\n", nuclidenames.size());
-  fmt::print("N.size()={}\n", N.size());
-  fmt::print("N[0].size()={}\n", N[0].size());
-  results_ = Results(N, nuclidenames, times);
-  return N;
+  return Results(N, nuclidenames, times);
 }
 
-void DecaySolver::to_hdf5(H5Easy::File &file) const {
-  for (auto const& [i, dico]: this->F){
-      std::string inuc = this->chain_.nuclides_[i]->name_;
-      for (auto const& [j, val]: dico){
-          std::string jnuc = this->chain_.nuclides_[j]->name_;
-          std::string h5path = fmt::format("/solver/F/{}/{}", inuc, jnuc);
-          H5Easy::dump(file, h5path, std::vector<double>({val}));
+void DecaySolver::compute_Fik(const NuclidePtr nuclide)
+{
+  const size_t i = nuclide->idInChain;
+  const double Cii = nuclide->dconst_;
+
+  for (size_t k = 0; k < i; k++)
+  {
+    double Ckk = chain_.nuclides_[k]->dconst_;
+
+    if (Ckk == 0 && Cii == 0)
+      continue;
+
+    double factor = 1 / (Cii - Ckk); // Cii != Ckk since tweak_dconst was called
+    for (const auto &decay : nuclide->decaysUp_)
+    {
+      size_t j = decay->parent_->idInChain;
+      if (j >= k)
+      {
+        const double Cij = decay->parent_->dconst_ * decay->branchingRatio_;
+
+        auto Fj = F.find(j);
+        if (Fj == F.end())
+          continue;
+
+        auto Fjk_it = Fj->second.find(k);
+        if (Fjk_it == Fj->second.end())
+          continue;
+
+        double Fjk = Fjk_it->second;
+
+        double val = Cij * Fjk * factor;
+        if (val != 0.)
+          F[i][k] += val;
       }
-  }
-  H5Easy::dump(file, "/solver/dconst", this->chain_.dconst_vector());
-  H5Easy::dump(file, "/solver/nuclides", this->chain_.name_vector());
-  H5Easy::dump(file, "/solver/Ns", this->Ns_vector());
-}
-
-std::vector<double> DecaySolver::Ns_vector() const {
-    std::vector<double> vec;
-    for (size_t i = 0; i < this->chain_.nuclides_.size(); i++){
-       vec.push_back(this->Ns.at(i));
     }
-    return vec;
+  }
 }
 
+void DecaySolver::compute_Ns(const NuclidePtr nuclide, const std::map<std::string, double> &ccMap)
+{
+  if (!nuclide->isStable())
+  {
+    /*Ns = 0 for unstable nuclides, when there are no external sources
+    TODO: add external sources capability
+     */
+    return;
+  }
+  const size_t i = nuclide->idInChain;
+  double N0 = (ccMap.find(nuclide->name_) != ccMap.end()) ? ccMap.at(nuclide->name_) : 0.0;
+
+  Ns[i] = N0;
+
+  auto Fi = F.find(i);
+  if (Fi == F.end())
+    return;
+
+  for (const auto &[k, Fik] : Fi->second)
+  {
+    if (k == i)
+      continue;
+    if (Fik == 0.)
+      continue;
+    Ns[i] -= Fik;
+  }
+}
+
+void DecaySolver::compute_Fii(const NuclidePtr nuclide, const std::map<std::string, double> &ccMap)
+{
+  if (nuclide->isStable())
+  {
+    /* For stable nuclides, Fii is defined as:
+      Fii = sum_{j} lambda(j) * g(j -> i) * Ns(j)
+
+      In this sum, either:
+        - j is unstable, in which case Ns(j) = 0
+        - j is stable, in which case lambda(j) = 0
+      Therefore, Fii = 0 for stable nuclides.
+
+    Note that Ns(j) = 0 for unstable nuclides because there are no external sources
+    TODO: add external sources capability
+    */
+    return;
+  }
+  const size_t i = nuclide->idInChain;
+
+  double N0 = (ccMap.find(nuclide->name_) != ccMap.end()) ? ccMap.at(nuclide->name_) : 0.0;
+
+  if (double val = N0 - Ns[nuclide->idInChain]; val != 0.)
+    F[i][i] = val;
+  for (size_t j = 0; j < i; j++)
+  {
+    auto Fi = F.find(i);
+    if (Fi == F.end())
+      continue;
+
+    auto Fij_it = Fi->second.find(j);
+    if (Fij_it == Fi->second.end())
+      continue;
+
+    double Fij = Fij_it->second;
+    if (Fij != 0.)
+      F[i][i] -= Fij;
+  }
+}

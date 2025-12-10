@@ -46,7 +46,8 @@ void Model::readSettings(const toml::table &tbl)
     {
         chainpath_ = *chainpath;
         const std::filesystem::path p{chainpath_};
-        if (!std::filesystem::exists(p)) {
+        if (!std::filesystem::exists(p))
+        {
             std::string msg = fmt::format("Depletion chain file {} does not exist", chainpath_);
             throw std::runtime_error(msg);
         }
@@ -280,8 +281,7 @@ void Model::run()
     if (solvertype_ == "Decay")
     {
         DecaySolver solver(chain_);
-        solver.run(initcc_, times_);
-        results = solver.results_;
+        results = solver.run(initcc_, times_);
     }
     else if (solvertype_ == "CRAM48")
     {
@@ -320,11 +320,14 @@ void Model::summarize()
     int width = 50;
     fmt::print("┌{0:─^{1}}┐\n", this->name_, width); // Title
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Name", this->name_);
-    
-    if (this->chainpath_.size() > 40) {
+
+    if (this->chainpath_.size() > 40)
+    {
         auto filename = std::filesystem::path(this->chainpath_).filename().string();
         fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", filename);
-    } else {
+    }
+    else
+    {
         fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Chain", this->chainpath_);
     }
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "Number of nuclides", this->chain_.nuclides_.size());
