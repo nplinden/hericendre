@@ -27,12 +27,8 @@ test-command = "python -c 'import hericendre; print(hericendre.__file__)'"
 test-requires = ["pytest"]
 
 [tool.cibuildwheel.linux]
-before-all = [
-    "yum install -y zlib-devel hdf5-devel",
-]
+before-all = ["yum install -y zlib-devel hdf5-devel"]
 environment = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
 
 [dependency-groups]
-dev = [
-    "cibuildwheel>=3.3.0",
-]
+dev = ["cibuildwheel>=3.3.0"]
