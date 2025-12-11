@@ -84,8 +84,6 @@ set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
         src/chain.cpp
         src/decay.cpp
         src/cramsolver.cpp
-        src/source.cpp
-        src/fission.cpp
         src/utils.cpp
         src/results.cpp
         src/model.cpp

@@ -44,7 +44,7 @@ DecaySolver::run(const std::map<std::string, double> &ccMap,
 
   for (size_t it = 1; it < nt; it++)
   {
-    fmt::print("{:.4e} -> {:.4e}\n", times[it - 1], times[it]);
+    // fmt::print("{:.4e} -> {:.4e}\n", times[it - 1], times[it]);
     for (size_t i = 0; i < nn; i++)
     {
       N[it][i] += Ns[i];

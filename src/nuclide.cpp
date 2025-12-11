@@ -1,6 +1,5 @@
 #include "nuclide.h"
 #include "decay.h"
-#include "nreaction.h"
 #include "utils.h"
 #include <cmath>
 #include <fmt/format.h>
@@ -31,23 +30,6 @@ Nuclide::Nuclide(const pugi::xml_node &nuclideNode)
 
     const std::string denergy_str = nuclideNode.attribute("decay_energy").value();
     denergy_ = !denergy_str.empty() ? stod(denergy_str) : 0.;
-
-    for (pugi::xml_node sourceNode = nuclideNode.child("source"); sourceNode;
-         sourceNode = sourceNode.next_sibling("source"))
-    {
-        sources_.push_back(std::make_shared<Source>(Source(sourceNode)));
-    }
-
-    // auto nfyNode = nuclideNode.child("neutron_fission_yields") ;
-    // if (nfyNode){
-    //     std::string parent = nfyNode.attribute("parent").value() ;
-    //     if (!parent.empty()) {
-    //         this->nfyParent_ = parent ;
-    //     } else if (nfyNode.child("energies")){
-    //         neutronFissionYields_ =
-    //         std::make_shared<NeutronFissionYield>(nfyNode) ;
-    //     }
-    // }
 };
 
 const std::map<std::string, int> Nuclide::ELEMENTS = {
@@ -128,84 +110,6 @@ void Nuclide::addNode(pugi::xml_node &rootnode)
                 fmtDouble(decay->branchingRatio_).c_str();
         }
     }
-
-    if (!this->sources_.empty())
-    {
-        for (const auto &source : this->sources_)
-        {
-            auto sourceNode = nucNode.append_child("source");
-            sourceNode.append_attribute("type") = source->type_.c_str();
-            if (!source->interpolation_.empty())
-                sourceNode.append_attribute("interpolation") =
-                    source->interpolation_.c_str();
-            sourceNode.append_attribute("particle") = source->particle_.c_str();
-            if (source->type_ != "mixture")
-            {
-                std::string parameters;
-                for (const auto energy : source->energy_)
-                {
-                    parameters += fmtDouble(energy);
-                    parameters += " ";
-                }
-                for (auto intensity : source->intensity_)
-                {
-                    parameters += fmt::format("{} ", intensity);
-                }
-                parameters.pop_back();
-                auto paramNode = sourceNode.append_child("parameters");
-                paramNode.text() = parameters.c_str();
-            }
-            else
-            {
-                for (size_t i = 0; i < source->pairs_.size(); i++)
-                {
-                    auto p = source->pairs_[i];
-                    auto proba = source->pair_probabilities_[i];
-                    auto pairNode = sourceNode.append_child("pair");
-                    pairNode.append_attribute("probability") = proba;
-                    auto distNode = pairNode.append_child("dist");
-                    distNode.append_attribute("type") = p.type_.c_str();
-                    if (!p.interpolation_.empty())
-                        distNode.append_attribute("interpolation") =
-                            p.interpolation_.c_str();
-
-                    std::string parameters;
-                    for (auto energy : p.energy_)
-                        parameters += fmt::format("{} ", energy);
-                    for (auto intensity : p.intensity_)
-                        parameters += fmt::format("{} ", intensity);
-                    parameters.pop_back();
-                    auto paramNode = distNode.append_child("parameters");
-                    paramNode.text() = parameters.c_str();
-                }
-            }
-        }
-    }
-
-    if (!this->reactions_.empty())
-    {
-        for (const auto &reaction : this->reactions_)
-        {
-            auto reacNode = nucNode.append_child("reaction");
-            reacNode.append_attribute("type") = reaction->type_.c_str();
-            reacNode.append_attribute("Q") = fmtDouble(reaction->Q_).c_str();
-            if (!reaction->targetName_.empty())
-                reacNode.append_attribute("target") = reaction->targetName_.c_str();
-            if (reaction->branchingRatio_ != 1.)
-                reacNode.append_attribute("branching_ratio") =
-                    reaction->branchingRatio_;
-        }
-    }
-
-    // if (this->neutronFissionYields_){
-    //     // fmt::print("{}", this->name_) ;
-    //     auto nfyNode = nucNode.append_child("neutron_fission_yields") ;
-    //     if (!this->nfyParent_.empty()){
-    //         nfyNode.append_attribute("parent") = this->nfyParent_.c_str() ;
-    //     } else {
-    //         this->neutronFissionYields_->addNode(nfyNode) ;
-    //     }
-    // }
 }
 
 bool Nuclide::isStable()

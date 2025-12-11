@@ -1,6 +1,5 @@
 #ifndef NUCLIDE_HPP_INCLUDED
 #define NUCLIDE_HPP_INCLUDED
-#include "source.h"
 #include <fmt/core.h>
 #include <map>
 #include <memory>
@@ -10,9 +9,6 @@
 // #include "nfy.h"
 
 class Decay;
-class NReaction;
-class Fission;
-using SourcePtr = std::shared_ptr<Source>;
 
 class Nuclide
 {
@@ -62,21 +58,6 @@ public:
      * \brief The vector of decays reaction that result in the nuclide's creation.
      */
     std::vector<std::shared_ptr<Decay>> decaysUp_;
-
-    /**
-     * \brief The vector of reactions that the nuclide can undergo.
-     */
-    std::vector<std::shared_ptr<NReaction>> reactions_;
-
-    /**
-     * \brief The vector of reactions that result in the nuclide's creation.
-     */
-    std::vector<std::shared_ptr<NReaction>> reactionsUp_;
-
-    /**
-     * \brief The vector of particles sources of the nuclide.
-     */
-    std::vector<SourcePtr> sources_;
 
     /**
      * \brief The decay constant of the nuclide.
