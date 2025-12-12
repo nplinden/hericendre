@@ -192,6 +192,10 @@ void Model::readTime(const toml::table &tbl)
 
 void Model::readMaterial(const toml::table &tbl)
 {
+    std::optional<std::string> xspath = tbl["Material"]["microxs"].value<std::string>();
+    if (xspath)
+        microxs_ = MicroXS(*xspath);
+
     std::optional<double> uniform = tbl["Material"]["uniform"].value<double>();
     auto concentrations = tbl["Material"]["concentrations"].as_table();
     if (concentrations && uniform)

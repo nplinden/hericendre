@@ -6,9 +6,9 @@
 #include <pugixml.hpp>
 #include <string>
 #include <vector>
-// #include "nfy.h"
 
 class Decay;
+class Reaction;
 
 class Nuclide
 {
@@ -58,6 +58,9 @@ public:
      * \brief The vector of decays reaction that result in the nuclide's creation.
      */
     std::vector<std::shared_ptr<Decay>> decaysUp_;
+
+    std::vector<std::shared_ptr<Reaction>> reactions_;
+    std::vector<std::shared_ptr<Reaction>> reactionsUp_;
 
     /**
      * \brief The decay constant of the nuclide.

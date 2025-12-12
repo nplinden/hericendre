@@ -43,6 +43,7 @@ Chain::Chain(const char *path)
         nuclides_.push_back(std::make_shared<Nuclide>(Nuclide(nuclide)));
         nuclides_.back()->idInChain = nuclides_.size() - 1;
 
+        // Build decay objects
         for (pugi::xml_node decayNode : nuclide.children("decay"))
         {
             decays_.push_back(std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
@@ -52,21 +53,19 @@ Chain::Chain(const char *path)
                 decays_.push_back(std::make_shared<Decay>(decays_.back()->getSecondaries()));
             }
         }
+
+        for (pugi::xml_node reactionNode : nuclide.children("reaction"))
+        {
+            reactions_.push_back(std::make_shared<Reaction>(Reaction(reactionNode, nuclides_.back())));
+        }
     }
 
     // Binding step
     /*
     The binding step connects decay targets to the corresponding decay object.
     */
-    for (auto &dec : decays_)
-    {
-        dec->parent_->decays_.push_back(dec);
-        if (!dec->targetName_.empty())
-        {
-            dec->target_ = this->find(dec->targetName_);
-            dec->target_->decaysUp_.push_back(dec);
-        }
-    }
+    bind_decays();
+    bind_reactions();
 }
 
 Chain::Chain() = default;
@@ -331,4 +330,66 @@ std::vector<double> Chain::dconst_vector() const
     for (const auto &nuclide : this->nuclides_)
         vec.push_back(nuclide->dconst_);
     return vec;
+}
+
+void Chain::bind_decays()
+{
+    for (auto &decay : decays_)
+    {
+        decay->parent_->decays_.push_back(decay);
+        if (!decay->targetName_.empty())
+        {
+            decay->target_ = this->find(decay->targetName_);
+            decay->target_->decaysUp_.push_back(decay);
+        }
+    }
+}
+
+void Chain::bind_reactions()
+{
+    for (auto &reaction : reactions_)
+    {
+        reaction->parent_->reactions_.push_back(reaction);
+        if (!reaction->targetName_.empty())
+        {
+            reaction->target_ = this->find(reaction->targetName_);
+            reaction->target_->reactionsUp_.push_back(reaction);
+        }
+    }
+}
+
+Eigen::SparseMatrix<double> Chain::DepletionMatrix(MicroXS microxs, double flux) const
+{
+    const size_t n = nuclides_.size();
+    std::vector<Eigen::Triplet<double>> triplets;
+    triplets.reserve(n + 3 * n); // rough estimate
+
+    for (size_t inuc = 0; inuc < n; inuc++)
+    {
+        const NuclidePtr &nuc = nuclides_[inuc];
+        triplets.emplace_back(inuc, inuc, -nuc->dconst_);
+
+        for (const auto &d : nuc->decays_)
+        {
+            if (d->target_)
+            {
+                const size_t jnuc = d->target_->idInChain;
+                triplets.emplace_back(jnuc, inuc, nuc->dconst_ * d->branchingRatio_);
+            }
+        }
+        for (const auto &r : nuc->reactions_)
+        {
+            if (r->target_)
+            {
+                const size_t jnuc = r->target_->idInChain;
+                double xs = microxs.getXS(nuc->name_, r->type_);
+                triplets.emplace_back(jnuc, inuc, flux * xs * r->branchingRatio_);
+                triplets.emplace_back(inuc, inuc, -flux * xs);
+            }
+        }
+    }
+    Eigen::SparseMatrix<double> M(n, n);
+    M.setFromTriplets(triplets.begin(), triplets.end());
+    M.makeCompressed();
+    return M;
 }

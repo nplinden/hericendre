@@ -1,6 +1,7 @@
 #include "model.h"
 #include <fmt/core.h>
 #include <highfive/highfive.hpp>
+#include <microxs.h>
 
 int main(int argc, char *argv[])
 {
@@ -18,19 +19,29 @@ int main(int argc, char *argv[])
     }
 
     std::string inputPath(argv[1]);
-    
+
     Model model;
-    try {
+    try
+    {
         model = Model(inputPath);
         model.summarize();
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception &e)
+    {
         fmt::print(stderr, "[ERROR] Failed to initialize model: {}\n", e.what());
         return EXIT_FAILURE;
     }
-    
-    try {
+    fmt::print("{}", model.microxs_.getXS("U235", "fission"));
+
+    auto M = model.chain_.DepletionMatrix(model.microxs_, 1.);
+    return EXIT_SUCCESS;
+
+    try
+    {
         model.run();
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception &e)
+    {
         fmt::print(stderr, "[ERROR] Simulation run failed: {}\n", e.what());
         return EXIT_FAILURE;
     }

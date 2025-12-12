@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "chain.h"
+#include "microxs.h"
 #include <toml++/toml.hpp>
 
 enum SolverType
@@ -42,6 +43,7 @@ public:
     std::string solvertype_;
     std::vector<double> times_;
     Chain chain_;
+    MicroXS microxs_;
 
 private:
     void readSettings(const toml::table &tbl);

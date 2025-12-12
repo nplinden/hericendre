@@ -1,23 +1,30 @@
 #include "utils.h"
 #include <fmt/format.h>
 
-std::vector<std::string> split(const std::string &str) {
+std::vector<std::string> split(const std::string &str)
+{
   std::vector<std::string> vect;
   vect.emplace_back();
-  for (const auto c : str) {
-    if (c == ' ') {
+  for (const auto c : str)
+  {
+    if (c == ' ')
+    {
       vect.emplace_back();
-    } else {
+    }
+    else
+    {
       vect.back() += c;
     }
   }
   return vect;
 }
 
-std::string trim(const std::string &str) {
+std::string trim(const std::string &str)
+{
   size_t start = str.find_first_not_of(" \t\n\r\f\v");
 
-  if (start == std::string::npos) {
+  if (start == std::string::npos)
+  {
     return "";
   }
 
@@ -25,9 +32,11 @@ std::string trim(const std::string &str) {
   return str.substr(start, end - start + 1);
 }
 
-std::string concatenate(const std::vector<std::string> &strs) {
+std::string concatenate(const std::vector<std::string> &strs)
+{
   std::string tmp;
-  for (const auto &c : strs) {
+  for (const auto &c : strs)
+  {
     tmp += c;
     tmp += " ";
   }
@@ -35,7 +44,8 @@ std::string concatenate(const std::vector<std::string> &strs) {
   return tmp;
 }
 
-std::string fmtDouble(double d) {
+std::string fmtDouble(double d)
+{
   std::string s = fmt::format("{}", d);
   if (d == floor(d))
     s += ".0";

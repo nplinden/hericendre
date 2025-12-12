@@ -83,6 +83,8 @@ set(TARGET hericendre)
 set(HERICENDRE_SOURCE_LIST src/nuclide.cpp
         src/chain.cpp
         src/decay.cpp
+        src/reaction.cpp
+        src/microxs.cpp
         src/cramsolver.cpp
         src/utils.cpp
         src/results.cpp

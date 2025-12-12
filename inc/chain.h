@@ -2,11 +2,14 @@
 #define CHAIN_HPP_INCLUDED
 #include <Eigen/Sparse>
 #include <decay.h>
+#include <reaction.h>
+#include <microxs.h>
 #include <nuclide.h>
 #include <string>
 #include <vector>
 
 using DecayPtr = std::shared_ptr<Decay>;
+using ReactionPtr = std::shared_ptr<Reaction>;
 using NuclidePtr = std::shared_ptr<Nuclide>;
 
 /**
@@ -189,5 +192,13 @@ public:
      * connecting a parent nuclide to a daughter nuclide with a specific branching ratio.
      */
     std::vector<DecayPtr> decays_;
+
+    std::vector<ReactionPtr> reactions_;
+
+    Eigen::SparseMatrix<double> DepletionMatrix(MicroXS microxs, double flux) const;
+
+private:
+    void bind_decays();
+    void bind_reactions();
 };
 #endif
