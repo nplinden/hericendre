@@ -11,6 +11,7 @@
 using DecayPtr = std::shared_ptr<Decay>;
 using ReactionPtr = std::shared_ptr<Reaction>;
 using NuclidePtr = std::shared_ptr<Nuclide>;
+using MicroXSPtr = std::shared_ptr<MicroXS>;
 
 /**
  * @brief Represents a nuclear decay and transmutation chain.
@@ -34,14 +35,14 @@ public:
      *
      * @param path Path to the depletion chain file in OpenMC XML format.
      */
-    explicit Chain(const char *path);
+    explicit Chain(const char *path, bool secondaries);
 
     /**
      * @brief Constructs a chain from an OpenMC XML chain file.
      *
      * @param path Path to the depletion chain file in OpenMC XML format.
      */
-    explicit Chain(const std::string &path);
+    explicit Chain(const std::string &path, bool secondaries);
 
     /**
      * @brief Constructs an empty chain.
@@ -195,7 +196,7 @@ public:
 
     std::vector<ReactionPtr> reactions_;
 
-    Eigen::SparseMatrix<double> DepletionMatrix(MicroXS microxs, double flux) const;
+    Eigen::SparseMatrix<double> DepletionMatrix(MicroXSPtr microxs, double flux) const;
 
 private:
     void bind_decays();

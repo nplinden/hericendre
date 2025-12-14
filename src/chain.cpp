@@ -7,11 +7,11 @@
 #include <fmt/ranges.h>
 #include <highfive/H5Easy.hpp>
 
-Chain::Chain(const std::string &path) : Chain(path.c_str())
+Chain::Chain(const std::string &path, bool secondaries) : Chain(path.c_str(), secondaries)
 {
 }
 
-Chain::Chain(const char *path)
+Chain::Chain(const char *path, bool secondaries)
 {
     pugi::xml_document doc;
     pugi::xml_parse_result results = doc.load_file(path);
@@ -47,8 +47,7 @@ Chain::Chain(const char *path)
         for (pugi::xml_node decayNode : nuclide.children("decay"))
         {
             decays_.push_back(std::make_shared<Decay>(Decay(decayNode, nuclides_.back())));
-
-            if (decays_.back()->hasSecondaries())
+            if (secondaries && decays_.back()->hasSecondaries())
             {
                 decays_.push_back(std::make_shared<Decay>(decays_.back()->getSecondaries()));
             }
@@ -149,30 +148,7 @@ size_t Chain::nuclide_index(const std::string &name) const
 
 Eigen::SparseMatrix<double> Chain::decayMatrix() const
 {
-
-    // eigen triplets are (row, col, value)
-    const size_t n = nuclides_.size();
-    std::vector<Eigen::Triplet<double>> triplets;
-    triplets.reserve(n + 3 * n); // rough estimate
-
-    for (size_t inuc = 0; inuc < n; inuc++)
-    {
-        const NuclidePtr &nuc = nuclides_[inuc];
-        triplets.emplace_back(inuc, inuc, -nuc->dconst_);
-
-        for (const auto &d : nuc->decays_)
-        {
-            if (d->target_)
-            {
-                const size_t jnuc = d->target_->idInChain;
-                triplets.emplace_back(jnuc, inuc, nuc->dconst_ * d->branchingRatio_);
-            }
-        }
-    }
-    Eigen::SparseMatrix<double> M(n, n);
-    M.setFromTriplets(triplets.begin(), triplets.end());
-    M.makeCompressed();
-    return M;
+    return this->DepletionMatrix(nullptr, 0.);
 }
 
 void Chain::dfs(const size_t &nucid, std::vector<bool> &visited)
@@ -358,7 +334,7 @@ void Chain::bind_reactions()
     }
 }
 
-Eigen::SparseMatrix<double> Chain::DepletionMatrix(MicroXS microxs, double flux) const
+Eigen::SparseMatrix<double> Chain::DepletionMatrix(MicroXSPtr microxs, double flux) const
 {
     const size_t n = nuclides_.size();
     std::vector<Eigen::Triplet<double>> triplets;
@@ -377,15 +353,20 @@ Eigen::SparseMatrix<double> Chain::DepletionMatrix(MicroXS microxs, double flux)
                 triplets.emplace_back(jnuc, inuc, nuc->dconst_ * d->branchingRatio_);
             }
         }
+
+        if (flux != 0) {
         for (const auto &r : nuc->reactions_)
         {
             if (r->target_)
             {
                 const size_t jnuc = r->target_->idInChain;
-                double xs = microxs.getXS(nuc->name_, r->type_);
+                double xs = microxs->getXS(nuc->name_, r->type_);
                 triplets.emplace_back(jnuc, inuc, flux * xs * r->branchingRatio_);
                 triplets.emplace_back(inuc, inuc, -flux * xs);
+            } else {
+                fmt::print("Warning: reaction target not found for reaction {} of nuclide {}\n", r->type_, nuc->name_);
             }
+        }
         }
     }
     Eigen::SparseMatrix<double> M(n, n);

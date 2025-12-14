@@ -27,6 +27,16 @@ name = "U235 Decay Simulation"
 
 ## `[Settings]` Section
 
+### `secondaries`
+**Type:** Boolean (optional)  
+**Description:** Include secondary nuclides in the chain. Defaults to `true` if not specified.
+
+**Example:**
+```toml
+[Settings]
+secondaries = true
+```
+
 ### `chain`
 **Type:** String (required)  
 **Description:** Path to the depletion chain XML file containing nuclide and decay data.
@@ -154,9 +164,23 @@ unit = "year"
 
 ## `[Material]` Section
 
-Defines initial nuclide concentrations. Use **either** `uniform` **or** `concentrations`, not both.
+Defines initial nuclide concentrations and optional microscopic cross sections.
 
-### Option 1: `uniform`
+### `microxs`
+**Type:** String (optional)  
+**Description:** Path to microscopic cross section data file. Required when using `CRAM48` solver with neutron-induced reactions. Cannot be used with `Decay` solver.
+
+**Example:**
+```toml
+[Material]
+microxs = "microxs_data.h5"
+```
+
+### Initial Concentrations
+
+Use **either** `uniform` **or** `concentrations`, not both.
+
+#### Option 1: `uniform`
 **Type:** Number  
 **Description:** Sets the same concentration for all nuclides in the chain.
 
@@ -166,7 +190,7 @@ Defines initial nuclide concentrations. Use **either** `uniform` **or** `concent
 uniform = 1.0
 ```
 
-### Option 2: `concentrations`
+#### Option 2: `concentrations`
 **Type:** Table  
 **Description:** Specifies individual concentrations for each nuclide by name.
 
@@ -195,10 +219,14 @@ name = "Uranium Decay Analysis"
 chain = "chains/endfb8.xml"
 results = "results/uranium_decay.h5"
 solver = "CRAM48"
+secondaries = true
 
 [Time]
 timestamps = [0, "linspace 1e3 1e6 100", "logspace 6 9 10"]
 unit = "year"
+
+[Material]
+microxs = "data/microxs.h5"
 
 [Material.concentrations]
 U235 = 1.0
@@ -214,6 +242,7 @@ U238 = 0.007
 3. **Required fields** - `chain`, `results`, and `timestamps` are mandatory
 4. **File existence** - The chain file must exist and be a valid depletion chain XML
 5. **Nuclide names** - Concentrations must reference nuclides that exist in the chain
+6. **Solver compatibility** - Cannot use `Decay` solver with `microxs` data
 
 ---
 
@@ -222,11 +251,17 @@ U238 = 0.007
 Common errors and their meanings:
 
 - `"No depletion chain file was specified"` - Missing `chain` in `[Settings]`
-- `"Depletion chain file does not exist"` - Invalid path to chain file
+- `"Depletion chain file {} does not exist"` - Invalid path to chain file
 - `"No result file was specified"` - Missing `results` in `[Settings]`
 - `"No timestamps provided"` - Missing `timestamps` in `[Time]`
 - `"Time vector is not sorted"` - Timestamps are not in ascending order
 - `"Invalid solver type"` - Solver must be "CRAM48" or "Decay"
 - `"uniform and concentration can't be defined at the same time"` - Use only one in `[Material]`
-- `"Invalid time function"` - Time function format is incorrect
+- `"Can't use \"Decay\" solver with microxs data"` - Remove microxs when using Decay solver
+- `"Invalid time function in timestamps definition"` - Time function format is incorrect (needs at least 4 parts)
 - `"Invalid unit name"` - Time unit not recognized
+- `"Invalid type in timestamps definition"` - Timestamp must be number or string
+- `"Concentration must be a number"` - Concentration values must be numeric
+- `"Invalid time unit name"` - Custom unit must have a name field
+- `"Invalid time unit magnitude"` - Custom unit must have a numeric magnitude field
+- `"Time unit must be either a string or a table"` - Unit format is invalid

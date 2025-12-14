@@ -34,12 +34,18 @@ Model::Model(const std::string &inputpath)
     readSettings(tbl);
     readTime(tbl);
     readMaterial(tbl);
+
+    check_settings();
 }
 
 Model::Model() = default;
 
 void Model::readSettings(const toml::table &tbl)
 {
+    std::optional<bool> secondaries = tbl["Settings"]["secondaries"].value<bool>();
+    if (secondaries)
+        secondaries_ = *secondaries;
+
     // DEPLETION CHAIN
     std::optional<std::string> chainpath = tbl["Settings"]["chain"].value<std::string>();
     if (chainpath)
@@ -51,7 +57,7 @@ void Model::readSettings(const toml::table &tbl)
             std::string msg = fmt::format("Depletion chain file {} does not exist", chainpath_);
             throw std::runtime_error(msg);
         }
-        this->chain_ = Chain(chainpath_.c_str());
+        this->chain_ = Chain(chainpath_.c_str(), secondaries_);
     }
     else
     {
@@ -194,7 +200,7 @@ void Model::readMaterial(const toml::table &tbl)
 {
     std::optional<std::string> xspath = tbl["Material"]["microxs"].value<std::string>();
     if (xspath)
-        microxs_ = MicroXS(*xspath);
+        microxs_ = std::make_shared<MicroXS>(*xspath);
 
     std::optional<double> uniform = tbl["Material"]["uniform"].value<double>();
     auto concentrations = tbl["Material"]["concentrations"].as_table();
@@ -289,7 +295,7 @@ void Model::run()
     }
     else if (solvertype_ == "CRAM48")
     {
-        CRAMSolver solver;
+        CRAMSolver solver(microxs_);
         results = solver.run(chain_, initcc_, times_);
     }
     else
@@ -316,7 +322,7 @@ std::string Model::chainpath() const
 void Model::set_chainpath(const std::string &chainpath)
 {
     chainpath_ = chainpath;
-    chain_ = Chain(chainpath_.c_str());
+    chain_ = Chain(chainpath_.c_str(), secondaries_);
 }
 
 void Model::summarize()
@@ -342,4 +348,13 @@ void Model::summarize()
     fmt::print("│{1:.<{0}}{2:.>{0}}│\n", width / 2, "End date", this->times_.back());
 
     fmt::print("└{0:─^{1}}┘\n", "", width);
+}
+
+bool Model::check_settings() const
+{
+   if (solvertype_ == "Decay" && microxs_){
+        throw std::runtime_error("Can't use \"Decay\" solver with microxs data.");
+   }
+
+   return true;
 }

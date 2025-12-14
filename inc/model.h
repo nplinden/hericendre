@@ -41,15 +41,17 @@ public:
     std::map<std::string, double> initcc_;
     std::string resultpath_;
     std::string solvertype_;
+    bool secondaries_ = true;
     std::vector<double> times_;
     Chain chain_;
-    MicroXS microxs_;
+    std::shared_ptr<MicroXS> microxs_;
 
 private:
     void readSettings(const toml::table &tbl);
     void readTime(const toml::table &tbl);
     std::vector<double> compute_time_function(const std::string &str);
     void readMaterial(const toml::table &tbl);
+    bool check_settings() const;
 
     std::vector<double> linspace(const std::vector<std::string> &splat) const;
 

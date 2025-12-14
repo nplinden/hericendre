@@ -2,6 +2,7 @@
 #define SOLVER_HPP_INCLUDED
 #include <Eigen/Sparse>
 #include <chain.h>
+#include <microxs.h>
 #include <complex>
 #include <map>
 #include <results.h>
@@ -10,6 +11,7 @@
 using cdouble = std::complex<double>;
 using SpComplex = Eigen::SparseMatrix<cdouble>;
 using TrComplex = Eigen::Triplet<cdouble>;
+using MicroXSPtr = std::shared_ptr<MicroXS>;
 
 /**
  * @brief Chebyshev Rational Approximation Method (CRAM) solver for depletion equations
@@ -27,7 +29,7 @@ using TrComplex = Eigen::Triplet<cdouble>;
 class CRAMSolver
 {
 public:
-    CRAMSolver();
+    CRAMSolver(MicroXSPtr microxs): microxs_(microxs) {};
 
     /**
      * @brief Solve depletion for multiple time steps with initial concentrations from a map
@@ -67,6 +69,8 @@ public:
      * Default: 1e-14
      */
     double cutoff_ = 1.e-14;
+
+    std::shared_ptr<MicroXS> microxs_;
 
 private:
     /**

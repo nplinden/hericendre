@@ -4,8 +4,6 @@
 #include <fmt/os.h>
 #include <cramsolver.h>
 
-CRAMSolver::CRAMSolver() = default;
-
 Eigen::VectorXd CRAMSolver::run(const SpComplex &M, const Eigen::VectorXd &ccVector, const double dt) const
 {
     const size_t n = M.rows();
@@ -47,7 +45,7 @@ Results CRAMSolver::run(const Chain &chain,
                         const Eigen::VectorXd &ccVector,
                         const std::vector<double> &times)
 {
-    const SpComplex M = chain.decayMatrix().cast<cdouble>();
+    const SpComplex M = chain.DepletionMatrix(microxs_, 1.e-6).cast<cdouble>();
 
     std::vector<Eigen::VectorXd> concentrations;
     concentrations.reserve(times.size());

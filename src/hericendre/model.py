@@ -116,14 +116,3 @@ class Time:
         self._timestamps = rhs
 
 
-class Material:
-    def __init__(self):
-        pass
-
-    @property
-    def concentrations(self):
-        return self._concentrations
-
-    @concentrations.setter
-    def concentrations(self, rhs):
-        self._concentrations = rhs

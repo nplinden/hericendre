@@ -10,6 +10,8 @@ dependencies = [
     "numpy>=2.2.4",
     "pint>=0.24.4",
     "polars>=1.26.0",
+    "pydantic>=2.12.5",
+    "toml>=0.10.2",
 ]
 
 [build-system]

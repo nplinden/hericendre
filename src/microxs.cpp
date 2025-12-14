@@ -4,12 +4,12 @@
 #include <utils.h>
 
 using Vector3D = std::vector<std::vector<std::vector<double>>>;
+using MicroXSPtr = std::shared_ptr<MicroXS>;
 
 MicroXS::MicroXS() = default;
 
 MicroXS::MicroXS(const std::string &xspath)
 {
-    fmt::print("Loading micro cross-sections from: {}\n", xspath);
     H5Easy::File file(xspath, H5Easy::File::ReadOnly);
 
     auto data = H5Easy::load<Vector3D>(file, "/data");

@@ -31,10 +31,6 @@ int main(int argc, char *argv[])
         fmt::print(stderr, "[ERROR] Failed to initialize model: {}\n", e.what());
         return EXIT_FAILURE;
     }
-    fmt::print("{}", model.microxs_.getXS("U235", "fission"));
-
-    auto M = model.chain_.DepletionMatrix(model.microxs_, 1.);
-    return EXIT_SUCCESS;
 
     try
     {

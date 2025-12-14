@@ -20,7 +20,7 @@ void DecaySolver::compute_coeffs(std::map<std::string, double> ccMap)
   chain_.tweak_dconst();
   Eigen::SparseMatrix<double> matrix = chain_.decayMatrix();
 
-  for (const NuclidePtr nuclide : chain_.nuclides_)
+  for (const NuclidePtr &nuclide : chain_.nuclides_)
   {
     compute_Fik(nuclide);
     compute_Ns(nuclide, ccMap);
